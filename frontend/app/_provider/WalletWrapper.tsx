@@ -35,8 +35,6 @@ const WalletProviderWrapper: FC<WalletProviderWrapperProps> = ({
   // Configure supported wallets
   const wallets = useMemo(
     () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
       // Add other wallet adapters here
     ],
     [network]
