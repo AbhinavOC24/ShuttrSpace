@@ -14,12 +14,21 @@ const LoginPage = () => {
   const router = useRouter();
   const { signMessage, publicKey, connected } = useWallet();
   const [isMounted, setIsMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  const {
+    loginWithWallet,
+    checkAuthAndFetchProfile,
+    loading,
+    error,
+    setLoading,
+    setError,
+  } = useAuthStore();
 
   useEffect(() => {
     setIsMounted(true);
-    checkAuthAndFetchProfile();
+
+    handleAuthCheck();
   }, []);
 
   useEffect(() => {
@@ -29,97 +38,28 @@ const LoginPage = () => {
     });
   }, [connected, publicKey]);
 
-  const checkAuthAndFetchProfile = async () => {
+  const handleAuthCheck = async () => {
+    setCheckingAuth(true);
     try {
-      setLoading(true);
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/getProfile`,
-        { withCredentials: true }
-      );
-      if (res.data.authenticated) {
-        if (res.data.hasProfile) {
-          router.push("/u/profilepage");
-        } else {
-          router.push("/u/createprofile");
-        }
-      } else {
-        setError("Not authenticated from checkAuthAndRedirect");
-      }
-    } catch (err) {
-      console.log("Not authenticated");
-    } finally {
-      setLoading(false);
+      const { authenticated, hasProfile } = await checkAuthAndFetchProfile();
+      if (authenticated) {
+        router.push(hasProfile ? "/u/profilepage" : "/u/createprofile");
+      } else setCheckingAuth(false);
+    } catch (error) {
+      console.log(error);
     }
   };
 
-  const loginWithWallet = async () => {
+  const handleLogin = async () => {
     if (!signMessage || !publicKey) {
       setError("Wallet not connected properly");
       return;
     }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      console.log(
-        "Step 1: Requesting nonce for public key:",
-        publicKey.toBase58()
-      );
-
-      const { data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/nonce`,
-        { publicKey: publicKey.toBase58() },
-        { withCredentials: true }
-      );
-
-      console.log("Step 2: Received nonce:", data.nonce);
-      const nonce = data.nonce;
-
-      console.log("Step 3: Signing message...");
-      const encodedMessage = new TextEncoder().encode(nonce);
-      const signedMessage = await signMessage(encodedMessage);
-
-      if (!signedMessage) throw new Error("Signature failed");
-
-      const signature = bs58.encode(signedMessage);
-      console.log("Step 4: Generated signature:", signature);
-
-      console.log("Step 5: Verifying signature...");
-
-      console.log(`${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/verifySign`);
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/verifySign`,
-        {
-          publicKey: publicKey.toBase58(),
-          signature,
-        },
-        { withCredentials: true }
-      );
-
-      console.log("Step 6: Verification response:", res.data);
-
-      if (res.data.authenticated) {
-        await checkAuthAndFetchProfile();
-      } else {
-        setError("Signature verification failed");
-      }
-    } catch (err: any) {
-      console.error("Login failed:", err);
-
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError("Login failed. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    const success = await loginWithWallet(publicKey.toBase58(), signMessage);
+    if (success) await handleAuthCheck();
   };
 
-  if (!isMounted)
+  if (!isMounted || checkingAuth)
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -156,7 +96,7 @@ const LoginPage = () => {
           </p>
 
           <button
-            onClick={loginWithWallet}
+            onClick={handleLogin}
             disabled={loading || !signMessage}
             className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
           >

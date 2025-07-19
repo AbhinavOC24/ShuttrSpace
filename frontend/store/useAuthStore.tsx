@@ -65,7 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err: any) {
       if (err.response?.data?.error) set({ error: err.response.data.error });
       else if (err.message) set({ error: err.message });
-      else set({ error: "Unknown login error" });
+      else set({ error: "Unknown login error from loginWithWallet" });
 
       return false;
     } finally {
