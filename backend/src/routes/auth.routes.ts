@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   getNonce,
-  verifyAuth,
+  getProfile,
   verifySign,
 } from "../controllers/auth.controller";
 
@@ -10,6 +10,6 @@ const router = Router();
 
 router.post("/verifySign", verifySign);
 router.post("/nonce", getNonce);
-router.get("/verifyAuth", checkAuth, verifyAuth);
+router.get("/getProfile", checkAuth, getProfile);
 
 export default router;

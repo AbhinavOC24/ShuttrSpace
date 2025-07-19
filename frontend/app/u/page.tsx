@@ -5,11 +5,11 @@ import {
   WalletDisconnectButton,
 } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import WalletProviderWrapper from "../_provider/WalletWrapper";
+
 import axios from "axios";
 import bs58 from "bs58";
 import { useRouter } from "next/navigation";
-
+import { useAuthStore } from "@/store/useAuthStore";
 const LoginPage = () => {
   const router = useRouter();
   const { signMessage, publicKey, connected } = useWallet();
@@ -19,7 +19,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    verifySession();
+    checkAuthAndFetchProfile();
   }, []);
 
   useEffect(() => {
@@ -29,15 +29,21 @@ const LoginPage = () => {
     });
   }, [connected, publicKey]);
 
-  const verifySession = async () => {
+  const checkAuthAndFetchProfile = async () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/verifyAuth`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/getProfile`,
         { withCredentials: true }
       );
       if (res.data.authenticated) {
-        router.push("/u/profilepage");
+        if (res.data.hasProfile) {
+          router.push("/u/profilepage");
+        } else {
+          router.push("/u/createprofile");
+        }
+      } else {
+        setError("Not authenticated from checkAuthAndRedirect");
       }
     } catch (err) {
       console.log("Not authenticated");
@@ -94,7 +100,7 @@ const LoginPage = () => {
       console.log("Step 6: Verification response:", res.data);
 
       if (res.data.authenticated) {
-        router.push("/u/profilepage");
+        await checkAuthAndFetchProfile();
       } else {
         setError("Signature verification failed");
       }

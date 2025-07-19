@@ -6,5 +6,6 @@ declare module "express-session" {
     nonce?: string;
     publicKey?: string;
     authenticated?: boolean;
+    hasProfile?: boolean;
   }
 }

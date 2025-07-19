@@ -14,6 +14,7 @@ export const getNonce = (req: Request, res: Response) => {
     req.session.nonce = nonce;
     req.session.publicKey = publicKey;
     req.session.authenticated = false;
+    req.session.hasProfile = false;
 
     console.log("Stored nonce:", req.session.nonce);
     console.log("Stored publicKey:", req.session.publicKey);
@@ -33,7 +34,6 @@ export const verifySign = (req: Request, res: Response) => {
     console.log("Session nonce:", req.session.nonce);
     console.log("Session publicKey:", req.session.publicKey);
 
-    // Check if session exists and has required data
     if (!req.session.nonce || !req.session.publicKey) {
       return res.status(401).json({
         error: "Session expired or invalid",
@@ -92,7 +92,14 @@ export const verifySign = (req: Request, res: Response) => {
   }
 };
 
-export const verifyAuth = (req: Request, res: Response) => {
+export const getProfile = (req: Request, res: Response) => {
+  res.json({
+    hasProfile: req.session.hasProfile,
+    authenticated: req.session.authenticated,
+  });
+  return;
+};
+export const getAuthStatus = (req: Request, res: Response) => {
   try {
     if (req.session.authenticated) {
       res.status(200).json({
@@ -112,4 +119,12 @@ export const verifyAuth = (req: Request, res: Response) => {
       authenticated: false,
     });
   }
+};
+
+export const createProfile = (req: Request, res: Response) => {
+  res.json({
+    hasProfile: req.session.hasProfile,
+    authenticated: req.session.authenticated,
+  });
+  return;
 };
