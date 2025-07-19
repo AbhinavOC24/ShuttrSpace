@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createProfile,
   getNonce,
   getProfile,
   verifySign,
@@ -11,5 +12,5 @@ const router = Router();
 router.post("/verifySign", verifySign);
 router.post("/nonce", getNonce);
 router.get("/getProfile", checkAuth, getProfile);
-
+router.post("/createProfile", checkAuth, createProfile);
 export default router;
