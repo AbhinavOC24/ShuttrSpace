@@ -19,6 +19,7 @@
     name String 
     slug String    @unique
     tags String[]
+    bio String
     publicKey String @unique
     photos Photo[]
     collections Collection[]

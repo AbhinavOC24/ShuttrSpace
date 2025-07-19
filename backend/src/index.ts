@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import session from "express-session";
 import cors from "cors";
+import imagekitRoutes from "./routes/imagekit.routes";
 
 import authRoutes from "./routes/auth.routes";
 
@@ -29,5 +30,7 @@ app.use(
 app.listen(process.env.BACKEND_PORT, () => {
   console.log(` Listening on Port ${process.env.BACKEND_PORT}`);
 });
+
+app.use("/api/imagekit", imagekitRoutes);
 
 app.use("/u/auth", authRoutes);

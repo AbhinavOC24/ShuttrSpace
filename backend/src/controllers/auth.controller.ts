@@ -27,8 +27,8 @@ export const getNonce = (req: Request, res: Response) => {
     req.session.authenticated = false;
     req.session.hasProfile = false;
 
-    console.log("Stored nonce:", req.session.nonce);
-    console.log("Stored publicKey:", req.session.publicKey);
+    // console.log("Stored nonce:", req.session.nonce);
+    // console.log("Stored publicKey:", req.session.publicKey);
 
     res.json({ nonce });
   } catch (e) {
@@ -145,6 +145,7 @@ export const getAuthStatus = (req: Request, res: Response) => {
 
 export const createProfile = async (req: Request, res: Response) => {
   try {
+    console.log(req.body);
     const userInfo = createUserSchema.safeParse(req.body);
     if (!userInfo.success) {
       res.status(401).json({
@@ -154,7 +155,7 @@ export const createProfile = async (req: Request, res: Response) => {
     }
     console.log(userInfo.data);
 
-    let { name, tags, publicKey } = userInfo.data;
+    let { name, tags, publicKey, bio } = userInfo.data;
     let base58PublicKey: string;
     try {
       base58PublicKey = new PublicKey(publicKey).toBase58();
@@ -180,6 +181,7 @@ export const createProfile = async (req: Request, res: Response) => {
       data: {
         name,
         tags,
+        bio,
         publicKey: base58PublicKey,
         slug,
       },
