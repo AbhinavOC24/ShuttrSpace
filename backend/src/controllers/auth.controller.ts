@@ -155,7 +155,7 @@ export const createProfile = async (req: Request, res: Response) => {
     }
     console.log(userInfo.data);
 
-    let { name, tags, publicKey, bio } = userInfo.data;
+    let { name, tags, publicKey, bio, profilePic } = userInfo.data;
     let base58PublicKey: string;
     try {
       base58PublicKey = new PublicKey(publicKey).toBase58();
@@ -182,6 +182,7 @@ export const createProfile = async (req: Request, res: Response) => {
         name,
         tags,
         bio,
+        profilePic,
         publicKey: base58PublicKey,
         slug,
       },

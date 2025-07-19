@@ -6,8 +6,6 @@ import {
 } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-import axios from "axios";
-import bs58 from "bs58";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 const LoginPage = () => {
