@@ -125,20 +125,14 @@ export const getProfile = async (req: Request, res: Response) => {
     }
     const profile = await prismaClient.user.findUnique({
       where: { slug },
-      select: {
-        name: true,
-        bio: true,
-        profilePic: true,
-        tags: true,
-        publicKey: true,
-      },
     });
 
     if (!profile) {
       return res.status(404).json({ error: "Profile not found" });
     }
-
-    return res.status(200).json({ authenticated: true, profile });
+    let sessionSlug = null;
+    if (req.session?.slug) sessionSlug = req.session.slug;
+    return res.status(200).json({ authenticated: true, sessionSlug, profile });
   } catch (err) {
     console.error("Error from getProfile:", err);
     return res.status(500).json({ error: "Failed to fetch profile" });
@@ -222,7 +216,11 @@ export const checkSessionStatusAndGetSlug = async (
     });
   }
 };
-
+export const checkAuthStatus = (req: Request, res: Response) => {
+  res.status(200).json({
+    authenticated: true,
+  });
+};
 export const logout = (req: Request, res: Response) => {
   req.session.destroy((err) => {
     if (err) {

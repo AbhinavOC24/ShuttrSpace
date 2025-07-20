@@ -19,7 +19,7 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   }
 
   res.status(401).json({
-    message: "Not authenticated from checkAuth",
+    error: "Not authenticated from checkAuth",
     authenticated: false,
   });
 };

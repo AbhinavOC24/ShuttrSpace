@@ -23,6 +23,30 @@ const CreateProfilePage = () => {
     }
   }, [publicKey, setFormData]);
 
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/checkAuthStatus`,
+          { withCredentials: true }
+        );
+        if (!res.data.authenticated) {
+          setGlobalError("You must be authenticated to create a profile.");
+          router.push("/u");
+        }
+      } catch (err: any) {
+        setGlobalError(
+          err?.response?.data?.error ||
+            err?.message ||
+            "Failed to check authentication status"
+        );
+        router.push("/u");
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
