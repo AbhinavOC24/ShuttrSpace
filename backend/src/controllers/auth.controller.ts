@@ -31,7 +31,7 @@ export const getNonce = (req: Request, res: Response) => {
     res.json({ nonce });
   } catch (e) {
     console.error("Error from getNonce:", e);
-    res.status(500).json({ message: "Error from getNonce" });
+    res.status(500).json({ error: "Error from getNonce" });
   }
 };
 
@@ -43,7 +43,9 @@ export const verifySign = async (req: Request, res: Response) => {
     try {
       base58PublicKey = new PublicKey(publicKey).toBase58();
     } catch (e) {
-      return res.status(400).json({ error: "Invalid public Key format" });
+      return res
+        .status(400)
+        .json({ error: "Invalid public Key format", authenticated: false });
     }
 
     if (!req.session.nonce || !req.session.publicKey) {
@@ -67,7 +69,9 @@ export const verifySign = async (req: Request, res: Response) => {
       signatureBytes = bs58.decode(signature);
       publicKeyBytes = bs58.decode(base58PublicKey);
     } catch (e) {
-      return res.status(400).json({ error: "Invalid base58 encoding" });
+      return res
+        .status(400)
+        .json({ error: "Invalid base58 encoding", authenticated: false });
     }
 
     const isValid = nacl.sign.detached.verify(
@@ -98,13 +102,14 @@ export const verifySign = async (req: Request, res: Response) => {
     req.session.authenticated = true;
     req.session.nonce = "removed";
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Authenticated successfully",
       authenticated: true,
+      slug: user ? user.slug : null,
     });
   } catch (error) {
     console.error("Error from verifySign:", error);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Internal server error",
       authenticated: false,
     });
@@ -113,8 +118,11 @@ export const verifySign = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
-
+    const { slug } = req.body;
+    console.log("Requesting profile:", slug);
+    if (!slug) {
+      return res.status(400).json({ error: "Missing slug" });
+    }
     const profile = await prismaClient.user.findUnique({
       where: { slug },
       select: {
@@ -130,70 +138,12 @@ export const getProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Profile not found" });
     }
 
-    res.json({ profile });
+    return res.status(200).json({ authenticated: true, profile });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch profile" });
+    console.error("Error from getProfile:", err);
+    return res.status(500).json({ error: "Failed to fetch profile" });
   }
 };
-
-// export const getProfileByPubKey = async (req: Request, res: Response) => {
-//   try {
-//     const { publicKey } = req.body;
-
-//     if (!publicKey) {
-//       res.json({ Error: "no public key found" });
-//       return;
-//     }
-//     let base58PublicKey: string;
-//     try {
-//       base58PublicKey = new PublicKey(publicKey).toBase58();
-//     } catch (e) {
-//       return res.status(400).json({ error: "Invalid public Key format" });
-//     }
-
-//     console.log("Requesting Profile of :", publicKey);
-
-//     const response = await prismaClient.user.findUnique({
-//       where: { publicKey: base58PublicKey },
-//       select: {
-//         slug: true,
-//       },
-//     });
-//     console.log(response);
-//     if (!response) {
-//       res.json({ authenticated: true, hasProfile: false });
-//     } else {
-//       res.json({ authenticated: true, hasProfile: true, slug: response.slug });
-//     }
-//   } catch (error) {
-//     res.status(500).json({
-//       error: error,
-//       message: "Internal server error from getProfile",
-//     });
-//   }
-// };
-
-// export const getAuthStatus = (req: Request, res: Response) => {
-//   try {
-//     if (req.session.authenticated) {
-//       res.status(200).json({
-//         message: "Authenticated",
-//         authenticated: true,
-//       });
-//     } else {
-//       res.status(401).json({
-//         message: "Not authenticated",
-//         authenticated: false,
-//       });
-//     }
-//   } catch (error) {
-//     console.error("Error from verifyAuth:", error);
-//     res.status(500).json({
-//       message: "Internal server error",
-//       authenticated: false,
-//     });
-//   }
-// };
 
 export const createProfile = async (req: Request, res: Response) => {
   try {
@@ -222,7 +172,7 @@ export const createProfile = async (req: Request, res: Response) => {
     });
 
     if (duplicateCheck) {
-      res.json({ message: "Account already exists" });
+      res.json({ error: "Account already exists" });
       return;
     }
 
@@ -249,8 +199,7 @@ export const createProfile = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({
-      error: error,
-      message: "Internal server error from signup",
+      error: "Internal server error from signup",
     });
   }
 };
@@ -278,7 +227,7 @@ export const logout = (req: Request, res: Response) => {
   req.session.destroy((err) => {
     if (err) {
       console.error("Logout failed:", err);
-      return res.status(500).json({ message: "Logout error" });
+      return res.status(500).json({ erro: "Logout error" });
     }
     res.clearCookie("connect.sid");
     res.status(200).json({ message: "Logged out" });

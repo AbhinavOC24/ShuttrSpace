@@ -8,6 +8,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useErrorStore } from "@/store/useErrorStore";
 const LoginPage = () => {
   const router = useRouter();
   const { signMessage, publicKey, connected } = useWallet();
@@ -18,14 +19,14 @@ const LoginPage = () => {
     loginWithWallet,
     checkAuthAndFetchSlug,
     loading,
-    error,
+
     setLoading,
-    setError,
   } = useAuthStore();
+  const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
 
   useEffect(() => {
     setIsMounted(true);
-
+    clearGlobalError();
     handleAuthCheck();
   }, []);
 
@@ -43,7 +44,11 @@ const LoginPage = () => {
 
       if (!authenticated) return;
       router.push(hasProfile ? `/u/${slug}` : "/u/createprofile");
-    } catch (error) {
+    } catch (error: any) {
+      const message =
+        error.response?.data?.error ||
+        "Something went wrong inside handle AuthCheck";
+      setGlobalError(message);
       console.log(error);
     } finally {
       setCheckingAuth(false);
@@ -52,7 +57,7 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     if (!signMessage || !publicKey) {
-      setError("Wallet not connected properly");
+      setGlobalError("Wallet not connected properly");
       return;
     }
     const result = await loginWithWallet(publicKey.toBase58(), signMessage);
@@ -79,9 +84,9 @@ const LoginPage = () => {
         </p>
       </div>
 
-      {error && (
+      {globalError && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
+          {globalError}
         </div>
       )}
 

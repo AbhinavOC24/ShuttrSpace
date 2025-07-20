@@ -4,8 +4,8 @@ import bs58 from "bs58";
 
 type AuthState = {
   loading: boolean;
-  error: string | null;
-  setError: (msg: string | null) => void;
+  authError: string | null;
+  setAuthError: (msg: string | null) => void;
   setLoading: (val: boolean) => void;
   checkAuthAndFetchSlug: () => Promise<{
     authenticated: boolean;
@@ -21,9 +21,9 @@ type AuthState = {
 };
 export const useAuthStore = create<AuthState>((set) => ({
   loading: false,
-  error: null,
+  authError: null,
 
-  setError: (msg) => set({ error: msg }),
+  setAuthError: (msg) => set({ authError: msg }),
   setLoading: (val) => set({ loading: val }),
 
   checkAuthAndFetchSlug: async () => {
@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   loginWithWallet: async (publicKey, signMessage) => {
     try {
-      set({ loading: true, error: null });
+      set({ loading: true, authError: null });
 
       const { data } = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/nonce`,
@@ -69,9 +69,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         authenticated: res.data.authenticated,
       };
     } catch (err: any) {
-      if (err.response?.data?.error) set({ error: err.response.data.error });
-      else if (err.message) set({ error: err.message });
-      else set({ error: "Unknown login error from loginWithWallet" });
+      if (err.response?.data?.error)
+        set({ authError: err.response.data.authE });
+      else if (err.message) set({ authError: err.message });
+      else set({ authError: "Unknown login error from loginWithWallet" });
 
       return null;
     } finally {

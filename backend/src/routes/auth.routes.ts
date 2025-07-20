@@ -12,7 +12,7 @@ const router = Router();
 
 router.post("/verifySign", verifySign);
 router.post("/nonce", getNonce);
-router.get("/getProfile", getProfile);
+router.post("/getProfile", getProfile);
 router.get("/getSlug", checkAuth, checkSessionStatusAndGetSlug);
 
 router.post("/createProfile", checkAuth, createProfile);

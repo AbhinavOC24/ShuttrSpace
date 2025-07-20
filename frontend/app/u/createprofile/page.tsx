@@ -4,7 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useUserProfileStore } from "@/store/useProfileStore"; // adjust import path
-
+import { useErrorStore } from "@/store/useErrorStore";
 const CreateProfilePage = () => {
   const { publicKey } = useWallet();
   const router = useRouter();
@@ -13,9 +13,11 @@ const CreateProfilePage = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
+  const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
   useEffect(() => {
+    clearGlobalError();
+
     if (publicKey) {
       setFormData({ publicKey: publicKey.toBase58() });
     }
@@ -77,10 +79,10 @@ const CreateProfilePage = () => {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    clearGlobalError();
 
     if (!formData.name.trim() || !formData.bio.trim() || !localFile) {
-      setError("All fields including profile picture are required.");
+      setGlobalError("All fields including profile picture are required.");
       return;
     }
 
@@ -101,10 +103,12 @@ const CreateProfilePage = () => {
         resetFormData();
         router.push(`/u/${res.data.slug}`);
       } else {
-        setError(res.data?.message || "Profile creation failed");
+        setGlobalError(res.data?.message || "No Slug found from handle submit");
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Upload failed");
+      const backendError =
+        err.response?.data?.error || err.message || "Upload failed";
+      setGlobalError(backendError);
     } finally {
       setLoading(false);
     }
@@ -164,9 +168,9 @@ const CreateProfilePage = () => {
             required
           />
         </div>
-        {error && (
+        {globalError && (
           <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+            {globalError}
           </div>
         )}
         <button
