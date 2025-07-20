@@ -16,7 +16,7 @@ const LoginPage = () => {
 
   const {
     loginWithWallet,
-    checkAuthAndFetchProfile,
+    checkAuthAndFetchSlug,
     loading,
     error,
     setLoading,
@@ -39,12 +39,14 @@ const LoginPage = () => {
   const handleAuthCheck = async () => {
     setCheckingAuth(true);
     try {
-      const { authenticated, hasProfile } = await checkAuthAndFetchProfile();
-      if (authenticated) {
-        router.push(hasProfile ? "/u/profilepage" : "/u/createprofile");
-      } else setCheckingAuth(false);
+      const { authenticated, hasProfile, slug } = await checkAuthAndFetchSlug();
+
+      if (!authenticated) return;
+      router.push(hasProfile ? `/u/${slug}` : "/u/createprofile");
     } catch (error) {
       console.log(error);
+    } finally {
+      setCheckingAuth(false);
     }
   };
 
@@ -53,8 +55,10 @@ const LoginPage = () => {
       setError("Wallet not connected properly");
       return;
     }
-    const success = await loginWithWallet(publicKey.toBase58(), signMessage);
-    if (success) await handleAuthCheck();
+    const result = await loginWithWallet(publicKey.toBase58(), signMessage);
+    if (result?.authenticated) {
+      await handleAuthCheck();
+    }
   };
 
   if (!isMounted || checkingAuth)

@@ -7,5 +7,6 @@ declare module "express-session" {
     publicKey?: string;
     authenticated?: boolean;
     hasProfile?: boolean;
+    slug?: string | null;
   }
 }

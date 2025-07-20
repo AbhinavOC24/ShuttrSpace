@@ -26,9 +26,7 @@ export const getNonce = (req: Request, res: Response) => {
     req.session.publicKey = base58PublicKey;
     req.session.authenticated = false;
     req.session.hasProfile = false;
-
-    // console.log("Stored nonce:", req.session.nonce);
-    // console.log("Stored publicKey:", req.session.publicKey);
+    req.session.slug = null;
 
     res.json({ nonce });
   } catch (e) {
@@ -37,13 +35,9 @@ export const getNonce = (req: Request, res: Response) => {
   }
 };
 
-export const verifySign = (req: Request, res: Response) => {
+export const verifySign = async (req: Request, res: Response) => {
   try {
     let { publicKey, signature } = req.body;
-    console.log("Received publicKey:", publicKey);
-    console.log("Received signature:", signature);
-    console.log("Session nonce:", req.session.nonce);
-    console.log("Session publicKey:", req.session.publicKey);
 
     let base58PublicKey: string;
     try {
@@ -67,7 +61,8 @@ export const verifySign = (req: Request, res: Response) => {
     }
 
     const message = new TextEncoder().encode(req.session.nonce);
-    let signatureBytes, publicKeyBytes;
+
+    let signatureBytes: Uint8Array, publicKeyBytes: Uint8Array;
     try {
       signatureBytes = bs58.decode(signature);
       publicKeyBytes = bs58.decode(base58PublicKey);
@@ -75,31 +70,33 @@ export const verifySign = (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid base58 encoding" });
     }
 
-    let isValid = false;
-    try {
-      isValid = nacl.sign.detached.verify(
-        message,
-        signatureBytes,
-        publicKeyBytes
-      );
-    } catch (verifyError) {
-      console.log("Ed25519 verification failed, trying alternative method");
-      console.error("Signature verification error:", verifyError);
-    }
+    const isValid = nacl.sign.detached.verify(
+      message,
+      signatureBytes,
+      publicKeyBytes
+    );
 
     if (!isValid) {
-      console.log("Signature verification failed");
-      console.log("Message length:", message.length);
-      console.log("Signature length:", signatureBytes.length);
-      console.log("PublicKey length:", publicKeyBytes.length);
-
       return res.status(401).json({
         error: "Invalid signature",
         authenticated: false,
       });
     }
 
+    const user = await prismaClient.user.findUnique({
+      where: { publicKey: base58PublicKey },
+      select: { slug: true },
+    });
+    if (user) {
+      req.session.hasProfile = true;
+      req.session.slug = user.slug;
+    } else {
+      req.session.hasProfile = false;
+      req.session.slug = null;
+    }
+
     req.session.authenticated = true;
+    req.session.nonce = "removed";
 
     res.status(200).json({
       message: "Authenticated successfully",
@@ -114,34 +111,89 @@ export const verifySign = (req: Request, res: Response) => {
   }
 };
 
-export const getProfile = (req: Request, res: Response) => {
-  res.json({
-    hasProfile: req.session.hasProfile,
-    authenticated: req.session.authenticated,
-  });
-  return;
-};
-export const getAuthStatus = (req: Request, res: Response) => {
+export const getProfile = async (req: Request, res: Response) => {
   try {
-    if (req.session.authenticated) {
-      res.status(200).json({
-        message: "Authenticated",
-        authenticated: true,
-      });
-    } else {
-      res.status(401).json({
-        message: "Not authenticated",
-        authenticated: false,
-      });
-    }
-  } catch (error) {
-    console.error("Error from verifyAuth:", error);
-    res.status(500).json({
-      message: "Internal server error",
-      authenticated: false,
+    const { slug } = req.params;
+
+    const profile = await prismaClient.user.findUnique({
+      where: { slug },
+      select: {
+        name: true,
+        bio: true,
+        profilePic: true,
+        tags: true,
+        publicKey: true,
+      },
     });
+
+    if (!profile) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    res.json({ profile });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch profile" });
   }
 };
+
+// export const getProfileByPubKey = async (req: Request, res: Response) => {
+//   try {
+//     const { publicKey } = req.body;
+
+//     if (!publicKey) {
+//       res.json({ Error: "no public key found" });
+//       return;
+//     }
+//     let base58PublicKey: string;
+//     try {
+//       base58PublicKey = new PublicKey(publicKey).toBase58();
+//     } catch (e) {
+//       return res.status(400).json({ error: "Invalid public Key format" });
+//     }
+
+//     console.log("Requesting Profile of :", publicKey);
+
+//     const response = await prismaClient.user.findUnique({
+//       where: { publicKey: base58PublicKey },
+//       select: {
+//         slug: true,
+//       },
+//     });
+//     console.log(response);
+//     if (!response) {
+//       res.json({ authenticated: true, hasProfile: false });
+//     } else {
+//       res.json({ authenticated: true, hasProfile: true, slug: response.slug });
+//     }
+//   } catch (error) {
+//     res.status(500).json({
+//       error: error,
+//       message: "Internal server error from getProfile",
+//     });
+//   }
+// };
+
+// export const getAuthStatus = (req: Request, res: Response) => {
+//   try {
+//     if (req.session.authenticated) {
+//       res.status(200).json({
+//         message: "Authenticated",
+//         authenticated: true,
+//       });
+//     } else {
+//       res.status(401).json({
+//         message: "Not authenticated",
+//         authenticated: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error from verifyAuth:", error);
+//     res.status(500).json({
+//       message: "Internal server error",
+//       authenticated: false,
+//     });
+//   }
+// };
 
 export const createProfile = async (req: Request, res: Response) => {
   try {
@@ -177,7 +229,7 @@ export const createProfile = async (req: Request, res: Response) => {
     const sanitized = name.trim().toLowerCase().replace(/\s+/g, "_"); // replace spaces
     const suffix = base58PublicKey.slice(0, 4); // or use bs58 hash if you prefer
     const slug = `${sanitized}_${suffix}`;
-    const newUser = await prismaClient.user.create({
+    await prismaClient.user.create({
       data: {
         name,
         tags,
@@ -186,12 +238,11 @@ export const createProfile = async (req: Request, res: Response) => {
         publicKey: base58PublicKey,
         slug,
       },
-      select: {
-        slug: true,
-      },
     });
 
     req.session.hasProfile = true;
+    req.session.slug = slug;
+
     res.status(201).json({
       slug,
       message: "Signup successful",
@@ -200,6 +251,25 @@ export const createProfile = async (req: Request, res: Response) => {
     res.status(500).json({
       error: error,
       message: "Internal server error from signup",
+    });
+  }
+};
+
+export const checkSessionStatusAndGetSlug = async (
+  req: Request,
+  res: Response
+) => {
+  if (req.session.hasProfile && req.session.slug && req.session.authenticated) {
+    return res.json({
+      authenticated: true,
+      hasProfile: true,
+      slug: req.session.slug,
+    });
+  } else {
+    return res.json({
+      authenticated: false,
+      hasProfile: false,
+      slug: null,
     });
   }
 };

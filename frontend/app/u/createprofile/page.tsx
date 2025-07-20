@@ -34,27 +34,8 @@ const CreateProfilePage = () => {
     setPreviewUrl(file ? URL.createObjectURL(file) : null);
   };
 
-  //   const auth = await axios.get(
-  //     `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
-  //   );
-  //   const form = new FormData();
-  //   form.append("file", file);
-  //   form.append("fileName", file.name);
-  //   form.append("publicKey", auth.data.publicKey);
-  //   form.append("signature", auth.data.signature);
-  //   form.append("expire", auth.data.expire);
-  //   form.append("token", auth.data.token);
-
-  //   const res = await axios.post(
-  //     "https://upload.imagekit.io/api/v1/files/upload",
-  //     form
-  //   );
-  //   return res.data.url;
-  // };
-
   const uploadToImageKit = async (file: File): Promise<string> => {
     try {
-      // Get fresh auth parameters
       const authResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
       );
@@ -71,7 +52,6 @@ const CreateProfilePage = () => {
       formData.append("expire", expire.toString());
       formData.append("token", token);
 
-      // Optional: Add folder organization
       formData.append("folder", "/profile-pictures");
 
       const uploadResponse = await axios.post(
@@ -119,7 +99,7 @@ const CreateProfilePage = () => {
 
       if (res.data?.slug) {
         resetFormData();
-        router.push("/u/profilepage");
+        router.push(`/u/${res.data.slug}`);
       } else {
         setError(res.data?.message || "Profile creation failed");
       }
