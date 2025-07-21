@@ -15,17 +15,13 @@ const LoginPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const {
-    loginWithWallet,
-    checkAuthAndFetchSlug,
-    loading,
-
-    setLoading,
-  } = useAuthStore();
+  const { loginWithWallet, checkAuthAndFetchSlug, loading, setLoading } =
+    useAuthStore();
   const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
 
   useEffect(() => {
     setIsMounted(true);
+
     clearGlobalError();
     handleAuthCheck();
   }, []);
@@ -39,6 +35,7 @@ const LoginPage = () => {
 
   const handleAuthCheck = async () => {
     setCheckingAuth(true);
+    setLoading(true);
     try {
       const { authenticated, hasProfile, slug } = await checkAuthAndFetchSlug();
 
@@ -52,6 +49,8 @@ const LoginPage = () => {
       console.log(error);
     } finally {
       setCheckingAuth(false);
+
+      setLoading(false);
     }
   };
 
