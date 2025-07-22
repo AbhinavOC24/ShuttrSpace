@@ -3,7 +3,41 @@ import WalletProviderWrapper from "./_provider/WalletWrapper"; // ✅ import
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import localFont from "next/font/local";
 
+const neueMontreal = localFont({
+  src: [
+    {
+      path: "../public/fonts/NeueuMontreal/NeueMontreal-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/NeueuMontreal/NeueMontreal-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+  variable: "--font-neue-montreal",
+  display: "swap",
+});
+
+const helveticaNeue = localFont({
+  src: [
+    {
+      path: "../public/fonts/HelveticaNeue/HelveticaNeue-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/HelveticaNeue/HelveticaNeue-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+  variable: "--font-helvetica",
+  display: "swap",
+});
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,7 +61,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`
+          ${geistSans.variable} 
+          ${geistMono.variable} 
+          ${neueMontreal.variable} 
+          ${helveticaNeue.variable} 
+          antialiased
+        `}
       >
         <WalletProviderWrapper>{children}</WalletProviderWrapper>
       </body>
