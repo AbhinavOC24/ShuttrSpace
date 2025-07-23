@@ -14,6 +14,8 @@ import loginImage2 from "../../public/login_image.jpg";
 import Arrow from "../../public/Arrow.svg";
 import SolanaVector from "../../public/Solana vector.svg";
 import star from "../../public/Star 1.svg";
+
+import Wallets from "../_components/Wallet";
 const LoginPage = () => {
   const router = useRouter();
   const { publicKey, connected, signMessage } = useWallet();
