@@ -22,6 +22,7 @@
     slug String    @unique
     profilePic String
     tags String[]
+    birthDate String
     photos Photo[]
     collections Collection[]
   createdAt DateTime @default(now())

@@ -149,9 +149,9 @@ export const createProfile = async (req: Request, res: Response) => {
       });
       return;
     }
-    console.log(userInfo.data);
+    // console.log(userInfo.data);
 
-    let { name, tags, publicKey, bio, profilePic } = userInfo.data;
+    let { name, tags, publicKey, bio, profilePic, birthDate } = userInfo.data;
     let base58PublicKey: string;
     try {
       base58PublicKey = new PublicKey(publicKey).toBase58();
@@ -178,6 +178,7 @@ export const createProfile = async (req: Request, res: Response) => {
         name,
         tags,
         bio,
+        birthDate: birthDate,
         profilePic,
         publicKey: base58PublicKey,
         slug,
@@ -193,7 +194,7 @@ export const createProfile = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({
-      error: "Internal server error from signup",
+      error,
     });
   }
 };

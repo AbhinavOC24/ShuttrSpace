@@ -16,7 +16,8 @@ export const publicKeySchema = z.string().refine(
 );
 export const createUserSchema = z.object({
   name: z.string().min(3).max(20),
-  tags: z.string().array().max(3).optional(),
+  tags: z.string().array().max(6).optional(),
+  birthDate: z.string(),
   bio: z.string().max(50),
   profilePic: z.string(),
   publicKey: publicKeySchema,
