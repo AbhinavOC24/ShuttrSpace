@@ -32,7 +32,7 @@ function ProfilePage() {
         ) {
           setCanEdit(true);
         }
-
+        console.log(res.data.profile);
         if (res.data.profile) setUserProfile(res.data.profile);
       } catch (err: any) {
         setGlobalError(
@@ -57,13 +57,18 @@ function ProfilePage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-6">
       <div className="bg-gray-900 rounded-lg shadow-lg p-8 w-full max-w-md flex flex-col items-center">
-        <div className="w-24 h-24 mb-4">
-          <img
-            src={userProfile.profilePic}
-            alt={userProfile.name}
-            className="w-24 h-24 object-cover rounded-full border-4 border-blue-500"
-          />
+        <div className="w-24 h-24 mb-4 border">
+          {userProfile.profilePic == "no image" ? (
+            <img
+              src={userProfile.profilePic}
+              alt={userProfile.name}
+              className="w-24 h-24 object-cover rounded-full border-4 border-blue-500"
+            />
+          ) : (
+            <div className="border-red-400"> Upload A Pic</div>
+          )}
         </div>
+
         <h1 className="text-2xl font-bold mb-2">{userProfile.name} </h1>
         <h1 className="text-2xl font-bold mb-2">
           Can Edit:{canEdit ? "Yes" : "No"}{" "}

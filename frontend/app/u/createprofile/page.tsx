@@ -10,14 +10,14 @@ import Image from "next/image";
 import CreatorFeatures from "./_components/RightPanelComponents/CreatorFeatures";
 import HeroSection from "./_components/RightPanelComponents/HeroSection";
 import SolanaCredits from "./_components/RightPanelComponents/SolanaCredits";
-import UploadProfileModal from "./_components/UploadProfileModal";
 import back_tats from "@public/back_tats.png";
+
 const CreateProfilePage = () => {
   const { publicKey } = useWallet();
   const router = useRouter();
   const { formData, setFormData, resetFormData } = useUserProfileStore();
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -54,66 +54,67 @@ const CreateProfilePage = () => {
     checkAuthStatus();
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setLocalFile(file);
-    setPreviewUrl(file ? URL.createObjectURL(file) : null);
-  };
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0] || null;
+  //   setLocalFile(file);
+  //   setPreviewUrl(file ? URL.createObjectURL(file) : null);
+  // };
 
-  const uploadToImageKit = async (file: File): Promise<string> => {
-    try {
-      const authResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
-      );
+  // const uploadToImageKit = async (file: File): Promise<string> => {
+  //   try {
+  //     const authResponse = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
+  //     );
 
-      const { signature, expire, token } = authResponse.data;
-      const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
+  //     const { signature, expire, token } = authResponse.data;
+  //     const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
 
-      console.log("authresponse", authResponse.data);
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("fileName", file.name);
-      formData.append("publicKey", publicKey);
-      formData.append("signature", signature);
-      formData.append("expire", expire.toString());
-      formData.append("token", token);
+  //     console.log("authresponse", authResponse.data);
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     formData.append("fileName", file.name);
+  //     formData.append("publicKey", publicKey);
+  //     formData.append("signature", signature);
+  //     formData.append("expire", expire.toString());
+  //     formData.append("token", token);
 
-      formData.append("folder", "/profile-pictures");
+  //     formData.append("folder", "/profile-pictures");
 
-      const uploadResponse = await axios.post(
-        "https://upload.imagekit.io/api/v1/files/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          timeout: 30000, // 30 second timeout
-        }
-      );
+  //     const uploadResponse = await axios.post(
+  //       "https://upload.imagekit.io/api/v1/files/upload",
+  //       formData,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //         timeout: 30000, // 30 second timeout
+  //       }
+  //     );
 
-      return uploadResponse.data.url;
-    } catch (error) {
-      console.error("ImageKit upload error:", error);
-      if (axios.isAxiosError(error)) {
-        console.error("Response data:", error.response?.data);
-        console.error("Response status:", error.response?.status);
-      }
-      throw new Error("Failed to upload image");
-    }
-  };
+  //     return uploadResponse.data.url;
+  //   } catch (error) {
+  //     console.error("ImageKit upload error:", error);
+  //     if (axios.isAxiosError(error)) {
+  //       console.error("Response data:", error.response?.data);
+  //       console.error("Response status:", error.response?.status);
+  //     }
+  //     throw new Error("Failed to upload image");
+  //   }
+  // };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearGlobalError();
 
-    if (!formData.name.trim() || !formData.bio.trim() || !localFile) {
-      setGlobalError("All fields including profile picture are required.");
+    if (!formData.name.trim() || !formData.bio.trim()) {
+      setGlobalError("All fields are required.");
       return;
     }
 
     setLoading(true);
     try {
       // Upload image first
-      const imageUrl = await uploadToImageKit(localFile);
+      // const imageUrl = await uploadToImageKit(localFile);
+      const imageUrl = "No image";
       setFormData({ profilePic: imageUrl });
 
       // Now send form data to backend
@@ -218,42 +219,6 @@ const CreateProfilePage = () => {
 
         <div className="w-[490px] relative rounded-5xl ">
           <div className="relative flex flex-col gap-[20px] w-[389px] h-fit top-[60px] left-[50px] ">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-[100px] h-[100px] rounded-full object-cover border border-gray-400"
-                  />
-                ) : (
-                  <div className="w-[100px] h-[100px] rounded-full flex items-center justify-center bg-gray-700 text-gray-400 border border-gray-500">
-                    No Image
-                  </div>
-                )}
-
-                {/* Upload Button (positioned bottom-right of image) */}
-                <label className="absolute bottom-0 right-0 bg-black border border-gray-400 rounded-full p-1 cursor-pointer hover:bg-gray-800">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M16.88 3.549A1 1 0 0016 3H4a1 1 0 00-.88.549l-3 6A1 1 0 001 10h2v6a2 2 0 002 2h10a2 2 0 002-2v-6h2a1 1 0 00.88-1.451l-3-6zM10 14a2 2 0 110-4 2 2 0 010 4z" />
-                  </svg>
-                </label>
-              </div>
-              <span className="text-gray-400 text-sm">
-                Upload Profile Picture
-              </span>
-            </div>
-
             <HeroSection />
 
             <CreatorFeatures />
