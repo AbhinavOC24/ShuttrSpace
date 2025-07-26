@@ -11,7 +11,7 @@ import { useErrorStore } from "@/store/useErrorStore";
 import LeftPanel from "./_components/LoginPage/LeftPanel";
 import ConnectWalletModal from "./_components/Wallet/ConnectWalletModal";
 import RightPanel from "./_components/LoginPage/RightPanel";
-import UploadProfileModal from "./createprofile/_components/UploadProfileModal";
+
 const RenderWallets = dynamic(
   () => import("./_components/Wallet/RenderWallet"),
   { ssr: false }

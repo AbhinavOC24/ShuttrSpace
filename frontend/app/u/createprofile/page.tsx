@@ -17,7 +17,7 @@ const CreateProfilePage = () => {
   const router = useRouter();
   const { formData, setFormData, resetFormData } = useUserProfileStore();
 
-  // const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
