@@ -3,7 +3,10 @@ import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useErrorStore } from "@/store/useErrorStore";
-
+import { pinata } from "@/utils/pinataConfig";
+import Image from "next/image";
+import { generateThumbnail } from "@/utils/generateThumbnails";
+import { calculateAge } from "@/utils/dateUtils";
 type UserProfile = {
   name: string;
   bio: string;
@@ -14,26 +17,22 @@ type UserProfile = {
   createdAt: string;
 };
 
-function calculateAge(dateString: string) {
-  const today = new Date();
-  const birthDate = new Date(dateString);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-}
-
 function ProfilePage() {
   const { slug } = useParams();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [localFile, setLocalFile] = useState<File | null>(null);
+
   const [canEdit, setCanEdit] = useState(false);
-  const [hovering, setHovering] = useState(false);
+
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const setGlobalError = useErrorStore((state) => state.setGlobalError);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const [uploadImageModalStatus, setuploadImageModalStatus] = useState(false);
+
+  const [uploading, setUploading] = useState(false);
+
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [urls, setUrls] = useState<string[]>([]);
 
   useEffect(() => {
     const getProfile = async () => {
@@ -69,53 +68,94 @@ function ProfilePage() {
     );
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setLocalFile(file);
-    setPreviewUrl(file ? URL.createObjectURL(file) : null);
-  };
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0] || null;
+  //   setLocalFile(file);
+  //   setPreviewUrl(file ? URL.createObjectURL(file) : null);
+  // };
 
-  const uploadToImageKit = async (file: File): Promise<string> => {
-    const authResponse = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
-    );
-    const { signature, expire, token } = authResponse.data;
-    const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("fileName", file.name);
-    formData.append("publicKey", publicKey);
-    formData.append("signature", signature);
-    formData.append("expire", expire.toString());
-    formData.append("token", token);
-    formData.append("folder", "/profile-pictures");
+  // const uploadToImageKit = async (file: File): Promise<string> => {
+  //   const authResponse = await axios.get(
+  //     `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
+  //   );
+  //   const { signature, expire, token } = authResponse.data;
+  //   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY!;
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("fileName", file.name);
+  //   formData.append("publicKey", publicKey);
+  //   formData.append("signature", signature);
+  //   formData.append("expire", expire.toString());
+  //   formData.append("token", token);
+  //   formData.append("folder", "/profile-pictures");
 
-    const uploadResponse = await axios.post(
-      "https://upload.imagekit.io/api/v1/files/upload",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+  //   const uploadResponse = await axios.post(
+  //     "https://upload.imagekit.io/api/v1/files/upload",
+  //     formData,
+  //     { headers: { "Content-Type": "multipart/form-data" } }
+  //   );
 
-    return uploadResponse.data.url;
-  };
+  //   return uploadResponse.data.url;
+  // };
 
-  const handleImageUpload = async () => {
-    if (!localFile) return;
+  // const handleImageUpload = async () => {
+  //   if (!localFile) return;
+  //   try {
+  //     const imageUrl = await uploadToImageKit(localFile);
+  //     await axios.post(
+  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/updateProfilePic`,
+  //       { imageUrl },
+  //       { withCredentials: true }
+  //     );
+  //     setUserProfile((prev) =>
+  //       prev ? { ...prev, profilePic: imageUrl } : prev
+  //     );
+  //     setLocalFile(null);
+  //     setPreviewUrl(null);
+  //   } catch (error) {
+  //     setGlobalError("Image upload failed");
+  //   }
+  // };
+
+  const uploadFiles = async () => {
+    setUploading(true);
     try {
-      const imageUrl = await uploadToImageKit(localFile);
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/updateProfilePic`,
-        { imageUrl },
-        { withCredentials: true }
-      );
-      setUserProfile((prev) =>
-        prev ? { ...prev, profilePic: imageUrl } : prev
-      );
-      setLocalFile(null);
-      setPreviewUrl(null);
+      const uploadedUrls: string[] = [];
+
+      for (const file of files) {
+        const fullUrlRequest = await fetch("/api/url");
+        const fullUrlResponse = await fullUrlRequest.json();
+        const fullUpload = await pinata.upload.public
+          .file(file)
+          .url(fullUrlResponse.url);
+        const fileUrl = `https://gateway.pinata.cloud/ipfs/${fullUpload.cid}`;
+
+        const thumbnail = await generateThumbnail(file);
+        const thumbUrlRequest = await fetch("/api/url");
+        const thumbUrlResponse = await thumbUrlRequest.json();
+        const thumbUpload = await pinata.upload.public
+          .file(thumbnail)
+          .url(thumbUrlResponse.url);
+        const thumbnailUrl = `https://gateway.pinata.cloud/ipfs/${thumbUpload.cid}`;
+
+        uploadedUrls.push(thumbnailUrl);
+      }
+
+      setUrls((prev) => [...prev, ...uploadedUrls]);
     } catch (error) {
-      setGlobalError("Image upload failed");
+      console.error(error);
+      alert("Trouble uploading files");
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    setFiles(selectedFiles);
+
+    const previewUrls = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviews(previewUrls);
   };
 
   if (!userProfile) {
@@ -133,16 +173,16 @@ function ProfilePage() {
           {/* Profile Pic (with hover change) */}
           <div
             className="relative  w-[250px] h-[252px] rounded-[20px] overflow-hidden"
-            onMouseEnter={() => setHovering(true)}
-            onMouseLeave={() => setHovering(false)}
+            // onMouseEnter={() => setHovering(true)}
+            // onMouseLeave={() => setHovering(false)}
           >
             <img
-              src={previewUrl || userProfile.profilePic}
+              src={userProfile.profilePic}
               alt={userProfile.name}
               className="w-full h-full object-cover"
             />
 
-            {canEdit && hovering && (
+            {/* {canEdit && hovering && (
               <div className="absolute inset-0 bg-black bg-opacity-100 flex flex-col items-center justify-center gap-2">
                 <label className="cursor-pointer px-3 py-1 bg-white text-black rounded text-xs">
                   Change
@@ -154,8 +194,8 @@ function ProfilePage() {
                   />
                 </label>
               </div>
-            )}
-
+            )} */}
+            {/*
             {localFile && (
               <button
                 onClick={handleImageUpload}
@@ -163,10 +203,11 @@ function ProfilePage() {
               >
                 Save
               </button>
-            )}
+            )} */}
           </div>
-
+          {/* details */}
           <div className=" flex flex-col gap-[2px]">
+            {/* Name,lcoation and bio */}
             <div className="flex flex-col gap-[10px]">
               {/* Name section */}
               <div className="flex flex-col ">
@@ -179,6 +220,7 @@ function ProfilePage() {
                     {calculateAge(userProfile.birthDate)}
                   </div>
                 </div>
+                {/* location */}
                 <div className="font-family-helvetica text-[16px] antialiased -translate-y-1 font-medium">
                   Uttarakhand,Ind
                 </div>
@@ -251,8 +293,66 @@ function ProfilePage() {
           </div>
         </div>
 
-        <div className="h-full w-full  p-[32px] bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999]"></div>
+        {/* showcase */}
+        <div className="h-full w-full  p-[32px] bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999]">
+          {urls.map((url, index) => (
+            <Image
+              key={index}
+              src={url}
+              alt={`Uploaded ${index}`}
+              width={100}
+              height={100}
+            />
+          ))}
+
+          <button onClick={() => setuploadImageModalStatus(true)}>
+            Upload
+          </button>
+        </div>
       </div>
+      {uploadImageModalStatus && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4 text-black">Upload Image</h2>
+            <input
+              type="file"
+              onChange={handleChange}
+              multiple
+              accept="image/*"
+              className="mb-4 w-full text-black"
+            />
+            {previews.map((url, index) => (
+              <Image
+                key={index}
+                src={url}
+                alt={`Preview ${index}`}
+                width={64}
+                height={64}
+                className="border rounded"
+              />
+            ))}
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setuploadImageModalStatus(false)}
+                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await uploadFiles();
+                  setuploadImageModalStatus(false);
+                }}
+                disabled={uploading || files.length === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
