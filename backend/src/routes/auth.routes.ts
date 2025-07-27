@@ -18,7 +18,6 @@ router.post("/getProfile", getProfile);
 router.get("/getSlug", checkAuth, checkSessionStatusAndGetSlug);
 router.post("/createProfile", debugSession, checkAuth, createProfile);
 router.post("/updateProfilePic", checkAuth, updateProfilePic);
-
 router.get("/checkAuthStatus", checkAuth, checkAuthStatus);
 
 export default router;

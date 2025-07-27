@@ -5,7 +5,7 @@ import cors from "cors";
 import imagekitRoutes from "./routes/imagekit.routes";
 
 import authRoutes from "./routes/auth.routes";
-
+import photoRoutes from "./routes/photo.routes";
 dotenv.config();
 
 const app = express();
@@ -33,4 +33,5 @@ app.listen(process.env.BACKEND_PORT, () => {
 
 app.use("/api/imagekit", imagekitRoutes);
 
+app.use("/u/photo", photoRoutes);
 app.use("/u/auth", authRoutes);
