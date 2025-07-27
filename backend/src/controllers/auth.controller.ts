@@ -232,3 +232,29 @@ export const logout = (req: Request, res: Response) => {
     res.status(200).json({ message: "Logged out" });
   });
 };
+export const updateProfilePic = async (req: Request, res: Response) => {
+  try {
+    if (!req.session || !req.session.authenticated || !req.session.publicKey) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { imageUrl } = req.body;
+    if (!imageUrl || typeof imageUrl !== "string") {
+      return res.status(400).json({ error: "Invalid image URL" });
+    }
+
+    const updatedUser = await prismaClient.user.update({
+      where: { publicKey: req.session.publicKey },
+      data: { profilePic: imageUrl },
+      select: { profilePic: true },
+    });
+
+    return res.status(200).json({
+      message: "Profile picture updated successfully",
+      profilePic: updatedUser.profilePic,
+    });
+  } catch (error) {
+    console.error("Error updating profile picture:", error);
+    return res.status(500).json({ error: "Failed to update profile picture" });
+  }
+};
