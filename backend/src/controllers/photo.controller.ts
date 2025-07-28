@@ -61,11 +61,11 @@ export const uploadPhotos = async (req: Request, res: Response) => {
 
 export const getPhotos = async (req: Request, res: Response) => {
   try {
-    if (!req.session?.hasProfile || !req.session?.slug) {
-      return res.status(403).json({ error: "Profile required to view photos" });
-    }
+    const slug = req.params.slug as string;
+    console.log(slug);
+    if (!slug) return;
     const userExists = await prismaClient.user.findUnique({
-      where: { slug: req.session.slug },
+      where: { slug: slug },
       select: { id: true },
     });
 

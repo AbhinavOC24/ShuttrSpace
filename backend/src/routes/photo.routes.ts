@@ -5,5 +5,5 @@ import { getPhotos, uploadPhotos } from "../controllers/photo.controller";
 const router = Router();
 
 router.post("/uploadPhotos", checkAuth, uploadPhotos);
-router.get("/getPhotos", checkAuth, getPhotos);
+router.get("/getPhotos/:slug", getPhotos);
 export default router;

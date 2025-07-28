@@ -67,8 +67,7 @@ function ProfilePage() {
         if (res.data.profile) {
           setUserProfile(res.data.profile);
           const photoRes = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos`,
-            { withCredentials: true }
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`
           );
           setGallery(photoRes.data.photos);
         }
@@ -268,7 +267,7 @@ function ProfilePage() {
         </div>
       </div>
 
-      {uploadImageModalStatus && (
+      {uploadImageModalStatus && canEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-auto mx-4">
             <h2 className="text-xl font-bold mb-4 text-black">Upload Image</h2>
