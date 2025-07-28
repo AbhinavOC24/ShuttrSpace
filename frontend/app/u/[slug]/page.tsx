@@ -26,6 +26,15 @@ type UploadedPhotosMetadata = {
   thumbnailUrl?: string;
 };
 
+type PhotoFromDB = {
+  id: number;
+  title: string;
+  tags: string[];
+  photoUrl: string;
+  thumbnailUrl: string;
+  createdAt: string;
+};
+
 function ProfilePage() {
   const { slug } = useParams();
   const setGlobalError = useErrorStore((state) => state.setGlobalError);
@@ -37,7 +46,7 @@ function ProfilePage() {
   const [uploadImageModalStatus, setuploadImageModalStatus] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const [gallery, setGallery] = useState<UploadedPhotosMetadata[]>([]);
+  const [gallery, setGallery] = useState<PhotoFromDB[]>([]);
   const [uploadQueue, setUploadQueue] = useState<UploadedPhotosMetadata[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -55,7 +64,14 @@ function ProfilePage() {
         ) {
           setCanEdit(true);
         }
-        if (res.data.profile) setUserProfile(res.data.profile);
+        if (res.data.profile) {
+          setUserProfile(res.data.profile);
+          const photoRes = await axios.get(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos`,
+            { withCredentials: true }
+          );
+          setGallery(photoRes.data.photos);
+        }
       } catch (err: any) {
         setGlobalError(
           err?.response?.data?.error ||
@@ -102,7 +118,7 @@ function ProfilePage() {
         { withCredentials: true }
       );
       console.log(response.data?.message);
-      setGallery((prev) => [...prev, ...uploadedPhotos]);
+      setGallery((prev) => [...prev, ...response.data.photos]);
     } catch (error) {
       console.error(error);
       alert("Trouble uploading files");
