@@ -7,6 +7,8 @@ import { pinata } from "@/utils/pinataConfig";
 import Image from "next/image";
 import { generateThumbnail } from "@/utils/generateThumbnails";
 import { calculateAge } from "@/utils/dateUtils";
+import { useWallet } from "@solana/wallet-adapter-react";
+import bs58 from "bs58";
 
 type UserProfile = {
   name: string;
@@ -18,7 +20,7 @@ type UserProfile = {
   createdAt: string;
 };
 
-type UploadedPhotosMetadata = {
+type PhotosFromUploadQueue = {
   file: File;
   title: string;
   tags: string[];
@@ -39,6 +41,7 @@ function ProfilePage() {
   const { slug } = useParams();
   const setGlobalError = useErrorStore((state) => state.setGlobalError);
 
+  const { publicKey, signMessage } = useWallet();
   const [canEdit, setCanEdit] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -47,7 +50,7 @@ function ProfilePage() {
   const [uploading, setUploading] = useState(false);
 
   const [gallery, setGallery] = useState<PhotoFromDB[]>([]);
-  const [uploadQueue, setUploadQueue] = useState<UploadedPhotosMetadata[]>([]);
+  const [uploadQueue, setUploadQueue] = useState<PhotosFromUploadQueue[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -69,6 +72,7 @@ function ProfilePage() {
           const photoRes = await axios.get(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`
           );
+
           setGallery(photoRes.data.photos);
         }
       } catch (err: any) {
@@ -90,6 +94,7 @@ function ProfilePage() {
 
   const uploadFiles = async () => {
     setUploading(true);
+
     try {
       const uploadedPhotos = await Promise.all(
         uploadQueue.map(async (photo) => {
@@ -111,12 +116,53 @@ function ProfilePage() {
           return { ...photo, imageUrl: fileUrl, thumbnailUrl };
         })
       );
+
+      if (signMessage && publicKey) {
+        const unsignedMetadata = {
+          author: {
+            publicKey: publicKey.toBase58(),
+            slug,
+          },
+          createdAt: new Date().toISOString(),
+          items: uploadedPhotos.map((p) => ({
+            title: p.title,
+            tags: p.tags,
+            imageUrl: p.imageUrl,
+            thumbnailUrl: p.thumbnailUrl,
+          })),
+        };
+
+        const encoded = new TextEncoder().encode(
+          JSON.stringify(unsignedMetadata)
+        );
+        const signature = await signMessage(encoded);
+
+        const signedMetadata = {
+          ...unsignedMetadata,
+          signature: bs58.encode(signature),
+        };
+
+        const metaBlob = new Blob([JSON.stringify(signedMetadata)], {
+          type: "application/json",
+        });
+        const metaFile = new File([metaBlob], "metadata.json");
+
+        const signedMetaDataRequest = await fetch("/api/url");
+        const signedMetaDataResponse = await signedMetaDataRequest.json();
+
+        const metaUpload = await pinata.upload.public
+          .file(metaFile)
+          .url(signedMetaDataResponse.url);
+
+        const metadataCid = metaUpload.cid;
+        console.log("Metadata CID:", metadataCid);
+      }
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/uploadPhotos`,
         { uploadedPhotos },
         { withCredentials: true }
       );
-      console.log(response.data?.message);
+      console.log(response.data);
       setGallery((prev) => [...prev, ...response.data.photos]);
     } catch (error) {
       console.error(error);
