@@ -1,49 +1,39 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useErrorStore } from "@/store/useErrorStore";
 import { pinata } from "@/utils/pinataConfig";
 import Image from "next/image";
 import { generateThumbnail } from "@/utils/generateThumbnails";
 import { calculateAge } from "@/utils/dateUtils";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
-
-type UserProfile = {
-  name: string;
-  bio: string;
-  profilePic: string;
-  tags: string[];
-  publicKey: string;
-  birthDate: string;
-  createdAt: string;
-};
-
-type PhotosFromUploadQueue = {
-  file: File;
-  title: string;
-  tags: string[];
-  imageUrl?: string;
-  thumbnailUrl?: string;
-};
-
-type PhotoFromDB = {
-  id: number;
-  title: string;
-  tags: string[];
-  photoUrl: string;
-  thumbnailUrl: string;
-  createdAt: string;
-};
+import {
+  Connection,
+  PublicKey,
+  sendAndConfirmRawTransaction,
+  sendAndConfirmTransaction,
+  Transaction,
+} from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+import idl from "../../../idl/portfolio_registry.json";
+import type { Idl } from "@coral-xyz/anchor";
+import {
+  UserProfile,
+  PhotoFromDB,
+  PhotosFromUploadQueue,
+} from "../_components/types/profile";
 
 function ProfilePage() {
+  const PROGRAM_ID = "B5FqrhXbhsZtcF3u39zvcUkgTV5NWBSy63xjuMNnDsxv";
   const { slug } = useParams();
   const setGlobalError = useErrorStore((state) => state.setGlobalError);
-
-  const { publicKey, signMessage } = useWallet();
-  const [canEdit, setCanEdit] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
+
+  const { publicKey, signMessage, sendTransaction } = useWallet();
+  const anchorWallet = useAnchorWallet();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const [uploadImageModalStatus, setuploadImageModalStatus] = useState(false);
@@ -52,6 +42,28 @@ function ProfilePage() {
   const [gallery, setGallery] = useState<PhotoFromDB[]>([]);
   const [uploadQueue, setUploadQueue] = useState<PhotosFromUploadQueue[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const connection = useMemo(
+    () => new Connection("https://api.devnet.solana.com"),
+    []
+  );
+
+  const program = useMemo(() => {
+    if (!anchorWallet) return null;
+
+    try {
+      const provider = new anchor.AnchorProvider(connection, anchorWallet, {
+        preflightCommitment: "processed",
+      });
+      anchor.setProvider(provider);
+
+      const programId = new PublicKey(PROGRAM_ID);
+      return new anchor.Program(idl as Idl, provider);
+    } catch (error) {
+      console.error("Failed to initialize Anchor program:", error);
+      return null;
+    }
+  }, [connection, anchorWallet]);
 
   useEffect(() => {
     const getProfile = async () => {
@@ -94,7 +106,7 @@ function ProfilePage() {
 
   const uploadFiles = async () => {
     setUploading(true);
-
+    if (uploading) return;
     try {
       const uploadedPhotos = await Promise.all(
         uploadQueue.map(async (photo) => {
@@ -117,7 +129,9 @@ function ProfilePage() {
         })
       );
 
-      if (signMessage && publicKey) {
+      // Handle blockchain signing and metadata upload
+
+      if (signMessage && publicKey && program) {
         const unsignedMetadata = {
           author: {
             publicKey: publicKey.toBase58(),
@@ -156,7 +170,91 @@ function ProfilePage() {
 
         const metadataCid = metaUpload.cid;
         console.log("Metadata CID:", metadataCid);
+
+        if (!anchorWallet) {
+          console.log("Cant find anchorWallet");
+          return;
+        }
+
+        const [portfolioPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("portfolio"), anchorWallet.publicKey.toBuffer()],
+          program.programId
+        );
+
+        const accountInfo = await connection.getAccountInfo(portfolioPDA);
+        console.log(accountInfo);
+        const portfolioExists = !!accountInfo;
+        console.log(portfolioExists);
+        try {
+          if (!portfolioExists) {
+            console.log("Upload triggered: create portfolio + add item");
+
+            const initIx = await program.methods
+              .initializePortfolio()
+              .accounts({
+                portfolio: portfolioPDA,
+                owner: anchorWallet.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .instruction();
+
+            const addIx = await program.methods
+              .addPortfolioItem(metadataCid)
+              .accounts({
+                portfolio: portfolioPDA,
+                owner: anchorWallet.publicKey,
+              })
+              .instruction();
+            console.log("Upload triggered");
+
+            const { blockhash, lastValidBlockHeight } =
+              await connection.getLatestBlockhash("confirmed");
+
+            const transaction = new Transaction({
+              feePayer: anchorWallet.publicKey,
+              blockhash,
+              lastValidBlockHeight,
+            }).add(initIx, addIx);
+
+            const signature = await sendTransaction(transaction, connection, {
+              skipPreflight: false,
+              preflightCommitment: "confirmed",
+            });
+
+            const confirmation = await connection.confirmTransaction(
+              {
+                signature,
+                blockhash,
+                lastValidBlockHeight,
+              },
+              "confirmed"
+            );
+            if (confirmation.value.err) {
+              throw new Error(`Transaction failed: ${confirmation.value.err}`);
+            }
+
+            console.log("Portfolio created and item added:", signature);
+            // const transaction = new Transaction().add(initIx, addIx);
+            // await sendTransaction(transaction, connection);
+          } else {
+            const sig = await program.methods
+              .addPortfolioItem(metadataCid)
+              .accounts({
+                portfolio: portfolioPDA,
+                owner: anchorWallet.publicKey,
+              })
+              .rpc({
+                skipPreflight: false,
+                preflightCommitment: "confirmed",
+              });
+            console.log("Portfolio item added:", sig);
+          }
+        } catch (error) {
+          console.log(error);
+        }
       }
+
+      // Save to database
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/uploadPhotos`,
         { uploadedPhotos },
@@ -165,11 +263,10 @@ function ProfilePage() {
       console.log(response.data);
       setGallery((prev) => [...prev, ...response.data.photos]);
     } catch (error) {
-      console.error(error);
-      alert("Trouble uploading files");
+      console.error("Upload error:", error);
+      setGlobalError("Failed to upload photos. Please try again.");
     } finally {
       setuploadImageModalStatus(false);
-
       setUploading(false);
       setUploadQueue([]);
       setCurrentIndex(0);
@@ -307,9 +404,14 @@ function ProfilePage() {
               height={100}
             />
           ))}
-          <button onClick={() => setuploadImageModalStatus(true)}>
-            Upload
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => setuploadImageModalStatus(true)}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Upload Photos
+            </button>
+          )}
         </div>
       </div>
 
@@ -345,7 +447,7 @@ function ProfilePage() {
                         updated[currentIndex].title = e.target.value;
                         setUploadQueue(updated);
                       }}
-                      className="border border-black"
+                      className="border border-black p-2 rounded"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -361,7 +463,7 @@ function ProfilePage() {
                           .map((t) => t.trim());
                         setUploadQueue(updated);
                       }}
-                      className="border border-black"
+                      className="border border-black p-2 rounded"
                     />
                   </div>
                 </div>
@@ -398,6 +500,11 @@ function ProfilePage() {
                 </button>
               )}
             </div>
+            {uploadQueue.length > 1 && (
+              <div className="mt-2 text-sm text-gray-600">
+                Image {currentIndex + 1} of {uploadQueue.length}
+              </div>
+            )}
           </div>
         </div>
       )}

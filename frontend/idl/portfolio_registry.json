@@ -1,0 +1,163 @@
+{
+  "address": "B5FqrhXbhsZtcF3u39zvcUkgTV5NWBSy63xjuMNnDsxv",
+  "metadata": {
+    "name": "portfolio_registry",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "add_portfolio_item",
+      "discriminator": [
+        254,
+        184,
+        93,
+        40,
+        49,
+        123,
+        92,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "portfolio",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  114,
+                  116,
+                  102,
+                  111,
+                  108,
+                  105,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "portfolio"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "metadata_cid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initialize_portfolio",
+      "discriminator": [
+        122,
+        177,
+        206,
+        169,
+        129,
+        85,
+        26,
+        192
+      ],
+      "accounts": [
+        {
+          "name": "portfolio",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  114,
+                  116,
+                  102,
+                  111,
+                  108,
+                  105,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "UserPortfolio",
+      "discriminator": [
+        221,
+        161,
+        193,
+        108,
+        114,
+        23,
+        232,
+        99
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "You are not authorized to modify this portfolio"
+    }
+  ],
+  "types": [
+    {
+      "name": "UserPortfolio",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "items",
+            "type": {
+              "vec": "string"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
