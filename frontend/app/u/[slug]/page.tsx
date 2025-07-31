@@ -106,7 +106,10 @@ function ProfilePage() {
 
   const uploadFiles = async () => {
     setUploading(true);
-    if (uploading) return;
+    if (uploading) {
+      console.log("Upload already in progress, skipping...");
+      return;
+    }
     try {
       const uploadedPhotos = await Promise.all(
         uploadQueue.map(async (photo) => {
@@ -130,6 +133,7 @@ function ProfilePage() {
       );
 
       // Handle blockchain signing and metadata upload
+      let batchInfo = {};
 
       if (signMessage && publicKey && program) {
         const unsignedMetadata = {
@@ -169,22 +173,31 @@ function ProfilePage() {
           .url(signedMetaDataResponse.url);
 
         const metadataCid = metaUpload.cid;
+
         console.log("Metadata CID:", metadataCid);
 
         if (!anchorWallet) {
           console.log("Cant find anchorWallet");
           return;
         }
-
+        batchInfo = {
+          items: uploadedPhotos.map((p) => ({
+            title: p.title,
+            tags: p.tags,
+            imageUrl: p.imageUrl,
+            thumbnailUrl: p.thumbnailUrl,
+          })),
+          metadataCid,
+          signature: bs58.encode(signature),
+        };
         const [portfolioPDA] = PublicKey.findProgramAddressSync(
           [Buffer.from("portfolio"), anchorWallet.publicKey.toBuffer()],
           program.programId
         );
 
         const accountInfo = await connection.getAccountInfo(portfolioPDA);
-        console.log(accountInfo);
+
         const portfolioExists = !!accountInfo;
-        console.log(portfolioExists);
         try {
           if (!portfolioExists) {
             console.log("Upload triggered: create portfolio + add item");
@@ -237,27 +250,40 @@ function ProfilePage() {
             // const transaction = new Transaction().add(initIx, addIx);
             // await sendTransaction(transaction, connection);
           } else {
-            const sig = await program.methods
+            const addIx = await program.methods
               .addPortfolioItem(metadataCid)
               .accounts({
                 portfolio: portfolioPDA,
                 owner: anchorWallet.publicKey,
               })
-              .rpc({
-                skipPreflight: false,
-                preflightCommitment: "confirmed",
-              });
-            console.log("Portfolio item added:", sig);
+              .instruction();
+
+            const { blockhash, lastValidBlockHeight } =
+              await connection.getLatestBlockhash("confirmed");
+            const transaction = new Transaction({
+              feePayer: anchorWallet.publicKey,
+              blockhash,
+              lastValidBlockHeight,
+            }).add(addIx);
+            const sig = await sendTransaction(transaction, connection, {
+              skipPreflight: false,
+              preflightCommitment: "confirmed",
+            });
+
+            console.log("Portfolio item added:");
           }
         } catch (error) {
           console.log(error);
         }
       }
-
       // Save to database
+      console.log(batchInfo);
+
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/uploadPhotos`,
-        { uploadedPhotos },
+        {
+          batchInfo,
+        },
         { withCredentials: true }
       );
       console.log(response.data);
@@ -342,7 +368,7 @@ function ProfilePage() {
               <div className="text-[16px] font-family-neue font-medium text-[#8A8A8A]">
                 Sort By
               </div>
-              <div className="flex justify-center items-center gap-[12px]">
+              <div className="flex  items-center gap-[12px]">
                 <div
                   key="collections"
                   onClick={() => toggleTag("collections")}

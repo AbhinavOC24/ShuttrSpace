@@ -30,5 +30,7 @@ export const createPhotoSchema = z.object({
   thumbnailUrl: z.string().url("Valid thumbnail URL required"),
 });
 export const createPhotosArraySchema = z.object({
-  uploadedPhotos: z.array(createPhotoSchema).min(1, "No photos provided"),
+  metadataCid: z.string(),
+  signature: z.string(),
+  items: z.array(createPhotoSchema).min(1, "No photos provided"),
 });

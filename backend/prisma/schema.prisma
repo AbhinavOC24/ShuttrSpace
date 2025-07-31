@@ -42,7 +42,9 @@
     title String
     tags String[]
     thumbnailUrl String 
-    photoUrl String
+    imageUrl String
+    metadataCid String
+    signature String
     user User @relation(fields:[userId], references: [id])
     userId String
     collection Collection? @relation(fields: [collectionId],references: [id])

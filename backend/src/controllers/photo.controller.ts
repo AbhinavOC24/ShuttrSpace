@@ -20,29 +20,31 @@ export const uploadPhotos = async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Profile not found" });
     }
 
-    const result = createPhotosArraySchema.safeParse(req.body);
+    const result = createPhotosArraySchema.safeParse(req.body.batchInfo);
     if (!result.success) {
       return res.status(400).json({ error: result.error.flatten() });
     }
 
-    const { uploadedPhotos } = result.data;
+    const { metadataCid, signature, items } = result.data;
 
     const newPhotos = await Promise.all(
-      uploadedPhotos.map((p) =>
+      items.map((p) =>
         prismaClient.photo.create({
           data: {
             title: p.title,
             tags: p.tags,
             thumbnailUrl: p.thumbnailUrl,
-            photoUrl: p.imageUrl,
+            imageUrl: p.imageUrl,
             userId: userExists.id,
+            metadataCid,
+            signature,
           },
           select: {
             id: true,
             title: true,
             tags: true,
             thumbnailUrl: true,
-            photoUrl: true,
+            imageUrl: true,
             createdAt: true,
           },
         })
@@ -81,7 +83,7 @@ export const getPhotos = async (req: Request, res: Response) => {
         title: true,
         tags: true,
         thumbnailUrl: true,
-        photoUrl: true,
+        imageUrl: true,
         createdAt: true,
       },
     });
