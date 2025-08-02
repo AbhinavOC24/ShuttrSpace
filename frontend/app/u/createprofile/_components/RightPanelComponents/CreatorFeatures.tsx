@@ -1,4 +1,4 @@
-import { useUserProfileStore } from "@/store/useProfileStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const CREATOR_FEATURES = {
   upper: ["Street", "Nature", "Portrait"],
@@ -6,7 +6,7 @@ const CREATOR_FEATURES = {
 };
 
 const CreatorFeatures = () => {
-  const { formData, toggleTag } = useUserProfileStore();
+  const { formData, toggleTag } = useAuthStore();
 
   return (
     <div className="flex flex-col gap-2.5 bottom-0 w-full">

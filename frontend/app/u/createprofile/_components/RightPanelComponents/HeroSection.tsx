@@ -1,12 +1,12 @@
 "use client";
 
-import { useUserProfileStore } from "@/store/useProfileStore";
 import DatePicker from "react-datepicker";
 import Image from "next/image";
 import back_tats from "@public/back_tats.png";
 import "react-datepicker/dist/react-datepicker.css";
+import { useAuthStore } from "@/store/useAuthStore";
 const HeroSection = () => {
-  const { formData, setFormData } = useUserProfileStore();
+  const { formData, setFormData } = useAuthStore();
   const selectedDate = formData.birthDate ? new Date(formData.birthDate) : null;
 
   return (

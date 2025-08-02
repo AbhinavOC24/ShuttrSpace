@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useUserProfileStore } from "@/store/useProfileStore"; // adjust import path
+
 import { useErrorStore } from "@/store/useErrorStore";
 import LeftPanel from "../_components/LoginPage/LeftPanel";
 import Image from "next/image";
@@ -11,11 +11,12 @@ import CreatorFeatures from "./_components/RightPanelComponents/CreatorFeatures"
 import HeroSection from "./_components/RightPanelComponents/HeroSection";
 import SolanaCredits from "./_components/RightPanelComponents/SolanaCredits";
 import back_tats from "@public/back_tats.png";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const CreateProfilePage = () => {
   const { publicKey } = useWallet();
   const router = useRouter();
-  const { formData, setFormData, resetFormData } = useUserProfileStore();
+  const { formData, setFormData, resetFormData } = useAuthStore();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [localFile, setLocalFile] = useState<File | null>(null);

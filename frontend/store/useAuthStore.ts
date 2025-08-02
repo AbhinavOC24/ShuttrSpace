@@ -2,7 +2,20 @@ import { create } from "zustand";
 import axios from "axios";
 import bs58 from "bs58";
 
+type FormDataType = {
+  publicKey: string;
+  name: string;
+  bio: string;
+  profilePic: string;
+  tags: string[];
+  birthDate: string;
+};
+
 type AuthState = {
+  formData: FormDataType;
+  setFormData: (data: Partial<FormDataType>) => void;
+  toggleTag: (tag: string) => void;
+  resetFormData: () => void;
   loading: boolean;
   authError: string | null;
   setAuthError: (msg: string | null) => void;
@@ -20,6 +33,38 @@ type AuthState = {
   } | null>;
 };
 export const useAuthStore = create<AuthState>((set) => ({
+  formData: {
+    publicKey: "",
+    name: "",
+    bio: "",
+    profilePic: "",
+    tags: [] as string[],
+    birthDate: "",
+  },
+  setFormData: (data) =>
+    set((state) => ({
+      formData: { ...state.formData, ...data },
+    })),
+  toggleTag: (tag: string) =>
+    set((state) => ({
+      formData: {
+        ...state.formData,
+        tags: state.formData.tags.includes(tag)
+          ? state.formData.tags.filter((t) => t !== tag)
+          : [...state.formData.tags, tag],
+      },
+    })),
+  resetFormData: () =>
+    set({
+      formData: {
+        publicKey: "",
+        name: "",
+        bio: "",
+        profilePic: "",
+        birthDate: "",
+        tags: [] as string[],
+      },
+    }),
   loading: false,
   authError: null,
 

@@ -9,13 +9,7 @@ import { generateThumbnail } from "@/utils/generateThumbnails";
 import { calculateAge } from "@/utils/dateUtils";
 import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
-import {
-  Connection,
-  PublicKey,
-  sendAndConfirmRawTransaction,
-  sendAndConfirmTransaction,
-  Transaction,
-} from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import idl from "../../../idl/portfolio_registry.json";
 import type { Idl } from "@coral-xyz/anchor";
@@ -23,7 +17,7 @@ import {
   UserProfile,
   PhotoFromDB,
   PhotosFromUploadQueue,
-} from "../_components/types/profile";
+} from "./_types/profile";
 
 function ProfilePage() {
   const PROGRAM_ID = "B5FqrhXbhsZtcF3u39zvcUkgTV5NWBSy63xjuMNnDsxv";
