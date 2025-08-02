@@ -1,284 +1,21 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState, useMemo } from "react";
-import axios from "axios";
-import { useErrorStore } from "@/store/useErrorStore";
-import { pinata } from "@/utils/pinataConfig";
+import React from "react";
+
 import Image from "next/image";
-import { generateThumbnail } from "@/utils/generateThumbnails";
+
 import { calculateAge } from "@/utils/dateUtils";
-import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
-import bs58 from "bs58";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import * as anchor from "@coral-xyz/anchor";
-import idl from "../../../idl/portfolio_registry.json";
-import type { Idl } from "@coral-xyz/anchor";
-import {
-  UserProfile,
-  PhotoFromDB,
-  PhotosFromUploadQueue,
-} from "./_types/profile";
+
 import { useProfileStore } from "@/store/useProfileStore";
+import { useProfile } from "@/hooks/useProfile";
+import { useUploadFiles } from "@/hooks/useUploadFiles";
 
 function ProfilePage() {
-  const PROGRAM_ID = "B5FqrhXbhsZtcF3u39zvcUkgTV5NWBSy63xjuMNnDsxv";
+  useProfile();
+  const { uploadFiles } = useUploadFiles();
   const { slug } = useParams();
-  const setGlobalError = useErrorStore((state) => state.setGlobalError);
-  const { publicKey, signMessage, sendTransaction } = useWallet();
-  const anchorWallet = useAnchorWallet();
-
-  // const [uploadImageModalStatus, setuploadImageModalStatus] = useState(false);
 
   const store = useProfileStore();
-  const connection = useMemo(
-    () => new Connection("https://api.devnet.solana.com"),
-    []
-  );
-
-  const program = useMemo(() => {
-    if (!anchorWallet) return null;
-
-    try {
-      const provider = new anchor.AnchorProvider(connection, anchorWallet, {
-        preflightCommitment: "processed",
-      });
-      anchor.setProvider(provider);
-
-      const programId = new PublicKey(PROGRAM_ID);
-      return new anchor.Program(idl as Idl, provider);
-    } catch (error) {
-      console.error("Failed to initialize Anchor program:", error);
-      return null;
-    }
-  }, [connection, anchorWallet]);
-
-  useEffect(() => {
-    const getProfile = async () => {
-      try {
-        const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/getProfile`,
-          { slug },
-          { withCredentials: true }
-        );
-        if (
-          res.data.authenticated &&
-          res.data.sessionSlug === res.data.profile.slug
-        ) {
-          store.setCanEdit(true);
-        }
-        if (res.data.profile) {
-          store.setUserProfile(res.data.profile);
-          const photoRes = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`
-          );
-
-          store.setGallery(photoRes.data.photos);
-        }
-      } catch (err: any) {
-        setGlobalError(
-          err?.response?.data?.error ||
-            err?.message ||
-            "Failed to fetch profile"
-        );
-      }
-    };
-    getProfile();
-  }, [slug, setGlobalError]);
-
-  const uploadFiles = async () => {
-    store.setUploading(true);
-    if (store.uploading) {
-      console.log("Upload already in progress, skipping...");
-      return;
-    }
-    try {
-      const uploadedPhotos = await Promise.all(
-        store.uploadQueue.map(async (photo) => {
-          const fullUrlRequest = await fetch("/api/url");
-          const fullUrlResponse = await fullUrlRequest.json();
-          const fullUpload = await pinata.upload.public
-            .file(photo.file)
-            .url(fullUrlResponse.url);
-          const fileUrl = `https://gateway.pinata.cloud/ipfs/${fullUpload.cid}`;
-
-          const thumbnail = await generateThumbnail(photo.file);
-          const thumbUrlRequest = await fetch("/api/url");
-          const thumbUrlResponse = await thumbUrlRequest.json();
-          const thumbUpload = await pinata.upload.public
-            .file(thumbnail)
-            .url(thumbUrlResponse.url);
-          const thumbnailUrl = `https://gateway.pinata.cloud/ipfs/${thumbUpload.cid}`;
-
-          return { ...photo, imageUrl: fileUrl, thumbnailUrl };
-        })
-      );
-
-      // Handle blockchain signing and metadata upload
-      let batchInfo = {};
-
-      if (signMessage && publicKey && program) {
-        const unsignedMetadata = {
-          author: {
-            publicKey: publicKey.toBase58(),
-            slug,
-          },
-          createdAt: new Date().toISOString(),
-          items: uploadedPhotos.map((p) => ({
-            title: p.title,
-            tags: p.tags,
-            imageUrl: p.imageUrl,
-            thumbnailUrl: p.thumbnailUrl,
-          })),
-        };
-
-        const encoded = new TextEncoder().encode(
-          JSON.stringify(unsignedMetadata)
-        );
-        const signature = await signMessage(encoded);
-
-        const signedMetadata = {
-          ...unsignedMetadata,
-          signature: bs58.encode(signature),
-        };
-
-        const metaBlob = new Blob([JSON.stringify(signedMetadata)], {
-          type: "application/json",
-        });
-        const metaFile = new File([metaBlob], "metadata.json");
-
-        const signedMetaDataRequest = await fetch("/api/url");
-        const signedMetaDataResponse = await signedMetaDataRequest.json();
-
-        const metaUpload = await pinata.upload.public
-          .file(metaFile)
-          .url(signedMetaDataResponse.url);
-
-        const metadataCid = metaUpload.cid;
-
-        console.log("Metadata CID:", metadataCid);
-
-        if (!anchorWallet) {
-          console.log("Cant find anchorWallet");
-          return;
-        }
-        batchInfo = {
-          items: uploadedPhotos.map((p) => ({
-            title: p.title,
-            tags: p.tags,
-            imageUrl: p.imageUrl,
-            thumbnailUrl: p.thumbnailUrl,
-          })),
-          metadataCid,
-          signature: bs58.encode(signature),
-        };
-        const [portfolioPDA] = PublicKey.findProgramAddressSync(
-          [Buffer.from("portfolio"), anchorWallet.publicKey.toBuffer()],
-          program.programId
-        );
-
-        const accountInfo = await connection.getAccountInfo(portfolioPDA);
-
-        const portfolioExists = !!accountInfo;
-        try {
-          if (!portfolioExists) {
-            console.log("Upload triggered: create portfolio + add item");
-
-            const initIx = await program.methods
-              .initializePortfolio()
-              .accounts({
-                portfolio: portfolioPDA,
-                owner: anchorWallet.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
-              })
-              .instruction();
-
-            const addIx = await program.methods
-              .addPortfolioItem(metadataCid)
-              .accounts({
-                portfolio: portfolioPDA,
-                owner: anchorWallet.publicKey,
-              })
-              .instruction();
-            console.log("Upload triggered");
-
-            const { blockhash, lastValidBlockHeight } =
-              await connection.getLatestBlockhash("confirmed");
-
-            const transaction = new Transaction({
-              feePayer: anchorWallet.publicKey,
-              blockhash,
-              lastValidBlockHeight,
-            }).add(initIx, addIx);
-
-            const signature = await sendTransaction(transaction, connection, {
-              skipPreflight: false,
-              preflightCommitment: "confirmed",
-            });
-
-            const confirmation = await connection.confirmTransaction(
-              {
-                signature,
-                blockhash,
-                lastValidBlockHeight,
-              },
-              "confirmed"
-            );
-            if (confirmation.value.err) {
-              throw new Error(`Transaction failed: ${confirmation.value.err}`);
-            }
-
-            console.log("Portfolio created and item added:", signature);
-            // const transaction = new Transaction().add(initIx, addIx);
-            // await sendTransaction(transaction, connection);
-          } else {
-            const addIx = await program.methods
-              .addPortfolioItem(metadataCid)
-              .accounts({
-                portfolio: portfolioPDA,
-                owner: anchorWallet.publicKey,
-              })
-              .instruction();
-
-            const { blockhash, lastValidBlockHeight } =
-              await connection.getLatestBlockhash("confirmed");
-            const transaction = new Transaction({
-              feePayer: anchorWallet.publicKey,
-              blockhash,
-              lastValidBlockHeight,
-            }).add(addIx);
-            const sig = await sendTransaction(transaction, connection, {
-              skipPreflight: false,
-              preflightCommitment: "confirmed",
-            });
-
-            console.log("Portfolio item added:");
-          }
-        } catch (error) {
-          console.log(error);
-        }
-      }
-      // Save to database
-      console.log(batchInfo);
-
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/uploadPhotos`,
-        {
-          batchInfo,
-        },
-        { withCredentials: true }
-      );
-      console.log(response.data);
-      store.addToGallery(response.data.photos);
-    } catch (error) {
-      console.error("Upload error:", error);
-      setGlobalError("Failed to upload photos. Please try again.");
-    } finally {
-      store.setuploadImageModalStatus(false);
-      store.setUploading(false);
-      store.setUploadQueue([]);
-      store.setCurrentIndex(0);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -295,7 +32,7 @@ function ProfilePage() {
     if (store.currentIndex < store.uploadQueue.length - 1) {
       store.setCurrentIndex(store.currentIndex + 1);
     } else {
-      uploadFiles();
+      uploadFiles(slug as string);
     }
   };
 
@@ -503,7 +240,7 @@ function ProfilePage() {
                 </button>
               ) : (
                 <button
-                  onClick={uploadFiles}
+                  onClick={() => uploadFiles(slug as string)}
                   disabled={store.uploading || store.uploadQueue.length === 0}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                 >
