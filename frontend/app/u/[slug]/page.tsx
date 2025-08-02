@@ -18,25 +18,18 @@ import {
   PhotoFromDB,
   PhotosFromUploadQueue,
 } from "./_types/profile";
+import { useProfileStore } from "@/store/useProfileStore";
 
 function ProfilePage() {
   const PROGRAM_ID = "B5FqrhXbhsZtcF3u39zvcUkgTV5NWBSy63xjuMNnDsxv";
   const { slug } = useParams();
   const setGlobalError = useErrorStore((state) => state.setGlobalError);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [canEdit, setCanEdit] = useState(false);
-
   const { publicKey, signMessage, sendTransaction } = useWallet();
   const anchorWallet = useAnchorWallet();
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const [uploadImageModalStatus, setuploadImageModalStatus] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  // const [uploadImageModalStatus, setuploadImageModalStatus] = useState(false);
 
-  const [gallery, setGallery] = useState<PhotoFromDB[]>([]);
-  const [uploadQueue, setUploadQueue] = useState<PhotosFromUploadQueue[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
+  const store = useProfileStore();
   const connection = useMemo(
     () => new Connection("https://api.devnet.solana.com"),
     []
@@ -71,15 +64,15 @@ function ProfilePage() {
           res.data.authenticated &&
           res.data.sessionSlug === res.data.profile.slug
         ) {
-          setCanEdit(true);
+          store.setCanEdit(true);
         }
         if (res.data.profile) {
-          setUserProfile(res.data.profile);
+          store.setUserProfile(res.data.profile);
           const photoRes = await axios.get(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`
           );
 
-          setGallery(photoRes.data.photos);
+          store.setGallery(photoRes.data.photos);
         }
       } catch (err: any) {
         setGlobalError(
@@ -92,21 +85,15 @@ function ProfilePage() {
     getProfile();
   }, [slug, setGlobalError]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
   const uploadFiles = async () => {
-    setUploading(true);
-    if (uploading) {
+    store.setUploading(true);
+    if (store.uploading) {
       console.log("Upload already in progress, skipping...");
       return;
     }
     try {
       const uploadedPhotos = await Promise.all(
-        uploadQueue.map(async (photo) => {
+        store.uploadQueue.map(async (photo) => {
           const fullUrlRequest = await fetch("/api/url");
           const fullUrlResponse = await fullUrlRequest.json();
           const fullUpload = await pinata.upload.public
@@ -281,15 +268,15 @@ function ProfilePage() {
         { withCredentials: true }
       );
       console.log(response.data);
-      setGallery((prev) => [...prev, ...response.data.photos]);
+      store.addToGallery(response.data.photos);
     } catch (error) {
       console.error("Upload error:", error);
       setGlobalError("Failed to upload photos. Please try again.");
     } finally {
-      setuploadImageModalStatus(false);
-      setUploading(false);
-      setUploadQueue([]);
-      setCurrentIndex(0);
+      store.setuploadImageModalStatus(false);
+      store.setUploading(false);
+      store.setUploadQueue([]);
+      store.setCurrentIndex(0);
     }
   };
 
@@ -300,23 +287,23 @@ function ProfilePage() {
       title: "",
       tags: [],
     }));
-    setUploadQueue(newQueue);
-    setCurrentIndex(0);
+    store.setUploadQueue(newQueue);
+    store.setCurrentIndex(0);
   };
 
   const nextPhoto = () => {
-    if (currentIndex < uploadQueue.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+    if (store.currentIndex < store.uploadQueue.length - 1) {
+      store.setCurrentIndex(store.currentIndex + 1);
     } else {
       uploadFiles();
     }
   };
 
   const prevPhoto = () => {
-    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
+    if (store.currentIndex > 0) store.setCurrentIndex(store.currentIndex - 1);
   };
 
-  if (!userProfile) {
+  if (!store.userProfile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         Loading profile...
@@ -330,8 +317,8 @@ function ProfilePage() {
         <div className="flex gap-[32px]">
           <div className="relative w-[250px] h-[252px] rounded-[20px] overflow-hidden">
             <img
-              src={userProfile.profilePic}
-              alt={userProfile.name}
+              src={store.userProfile.profilePic}
+              alt={store.userProfile.name}
               className="w-full h-full object-cover"
             />
           </div>
@@ -341,11 +328,11 @@ function ProfilePage() {
               <div className="flex flex-col">
                 <div className="flex gap-[10px] items-center">
                   <div className="font-family-helvetica text-[32px]">
-                    {userProfile.name}
+                    {store.userProfile.name}
                   </div>
                   <div className="w-2 h-2 rounded-full bg-[#d9d9d9]" />
                   <div className="text-[28px] font-family-helvetica font-medium">
-                    {calculateAge(userProfile.birthDate)}
+                    {calculateAge(store.userProfile.birthDate)}
                   </div>
                 </div>
                 <div className="font-family-helvetica text-[16px] font-medium -translate-y-1">
@@ -354,7 +341,7 @@ function ProfilePage() {
               </div>
 
               <div className="antialiased text-white w-[571px] h-[107px] font-family-neue font-medium text-[18px] leading-5">
-                Emerging concert photographer... {userProfile.bio}
+                Emerging concert photographer... {store.userProfile.bio}
               </div>
             </div>
 
@@ -365,16 +352,16 @@ function ProfilePage() {
               <div className="flex  items-center gap-[12px]">
                 <div
                   key="collections"
-                  onClick={() => toggleTag("collections")}
+                  onClick={() => store.toggleTag("collections")}
                   className={`${
-                    selectedTags.includes("collections")
+                    store.selectedTags.includes("collections")
                       ? "bg-white text-black border-[0.5px] border-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.8)]"
                       : "border-[#4d4d4d] text-white border-[0.5px] shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3)]"
                   } cursor-pointer gap-[6px] h-[30px] px-[12px] py-[2px] flex items-center rounded-[10px]`}
                 >
                   <div
                     className={`w-[5px] h-[5px] rounded-full ${
-                      selectedTags.includes("collections")
+                      store.selectedTags.includes("collections")
                         ? "bg-black"
                         : "bg-white"
                     }`}
@@ -385,12 +372,12 @@ function ProfilePage() {
                 </div>
                 <div className="w-px h-[30px] bg-gray-400"></div>
                 <div className="flex flex-wrap gap-[4px]">
-                  {userProfile.tags.map((tag, idx) => {
-                    const isSelected = selectedTags.includes(tag);
+                  {store.userProfile.tags.map((tag, idx) => {
+                    const isSelected = store.selectedTags.includes(tag);
                     return (
                       <div
                         key={idx}
-                        onClick={() => toggleTag(tag)}
+                        onClick={() => store.toggleTag(tag)}
                         className={`${
                           isSelected
                             ? "bg-white text-black border-[0.5px] border-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.8)]"
@@ -415,7 +402,7 @@ function ProfilePage() {
         </div>
 
         <div className="h-full w-full p-[32px] bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999]">
-          {gallery.map((photo, index) => (
+          {store.gallery.map((photo, index) => (
             <Image
               key={index}
               src={photo.thumbnailUrl || ""}
@@ -424,9 +411,9 @@ function ProfilePage() {
               height={100}
             />
           ))}
-          {canEdit && (
+          {store.canEdit && (
             <button
-              onClick={() => setuploadImageModalStatus(true)}
+              onClick={() => store.setuploadImageModalStatus(true)}
               className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Upload Photos
@@ -435,7 +422,7 @@ function ProfilePage() {
         </div>
       </div>
 
-      {uploadImageModalStatus && canEdit && (
+      {store.uploadImageModalStatus && store.canEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-auto mx-4">
             <h2 className="text-xl font-bold mb-4 text-black">Upload Image</h2>
@@ -446,10 +433,12 @@ function ProfilePage() {
               accept="image/*"
               className="mb-4 w-full text-black"
             />
-            {uploadQueue[currentIndex] && (
+            {store.uploadQueue[store.currentIndex] && (
               <div className="flex gap-4">
                 <Image
-                  src={URL.createObjectURL(uploadQueue[currentIndex].file)}
+                  src={URL.createObjectURL(
+                    store.uploadQueue[store.currentIndex].file
+                  )}
                   alt="Preview"
                   width={500}
                   height={500}
@@ -461,11 +450,11 @@ function ProfilePage() {
                     <input
                       type="text"
                       id="title"
-                      value={uploadQueue[currentIndex].title}
+                      value={store.uploadQueue[store.currentIndex].title}
                       onChange={(e) => {
-                        const updated = [...uploadQueue];
-                        updated[currentIndex].title = e.target.value;
-                        setUploadQueue(updated);
+                        const updated = [...store.uploadQueue];
+                        updated[store.currentIndex].title = e.target.value;
+                        store.setUploadQueue(updated);
                       }}
                       className="border border-black p-2 rounded"
                     />
@@ -475,13 +464,15 @@ function ProfilePage() {
                     <input
                       type="text"
                       id="tags"
-                      value={uploadQueue[currentIndex].tags.join(", ")}
+                      value={store.uploadQueue[store.currentIndex].tags.join(
+                        ", "
+                      )}
                       onChange={(e) => {
-                        const updated = [...uploadQueue];
-                        updated[currentIndex].tags = e.target.value
+                        const updated = [...store.uploadQueue];
+                        updated[store.currentIndex].tags = e.target.value
                           .split(",")
                           .map((t) => t.trim());
-                        setUploadQueue(updated);
+                        store.setUploadQueue(updated);
                       }}
                       className="border border-black p-2 rounded"
                     />
@@ -491,19 +482,19 @@ function ProfilePage() {
             )}
             <div className="flex gap-2 mt-4">
               <button
-                onClick={() => setuploadImageModalStatus(false)}
+                onClick={() => store.setuploadImageModalStatus(false)}
                 className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
               >
                 Cancel
               </button>
               <button
                 onClick={prevPhoto}
-                disabled={currentIndex === 0}
+                disabled={store.currentIndex === 0}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
               >
                 Prev
               </button>
-              {currentIndex !== uploadQueue.length - 1 ? (
+              {store.currentIndex !== store.uploadQueue.length - 1 ? (
                 <button
                   onClick={nextPhoto}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -513,16 +504,16 @@ function ProfilePage() {
               ) : (
                 <button
                   onClick={uploadFiles}
-                  disabled={uploading || uploadQueue.length === 0}
+                  disabled={store.uploading || store.uploadQueue.length === 0}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {uploading ? "Uploading..." : "Upload"}
+                  {store.uploading ? "Uploading..." : "Upload"}
                 </button>
               )}
             </div>
-            {uploadQueue.length > 1 && (
+            {store.uploadQueue.length > 1 && (
               <div className="mt-2 text-sm text-gray-600">
-                Image {currentIndex + 1} of {uploadQueue.length}
+                Image {store.currentIndex + 1} of {store.uploadQueue.length}
               </div>
             )}
           </div>
