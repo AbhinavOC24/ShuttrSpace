@@ -24,6 +24,7 @@ export const useProfile = () => {
           store.setCanEdit(true);
         }
         if (res.data.profile) {
+          console.log(res.data.profile);
           store.setUserProfile(res.data.profile);
           const photoRes = await axios.get(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`

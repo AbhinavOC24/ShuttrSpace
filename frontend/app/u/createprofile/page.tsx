@@ -77,7 +77,6 @@ const CreateProfilePage = () => {
       const { signature, expire, token } = authResponse.data;
       const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
 
-      console.log("authresponse", authResponse.data);
       const formData = new FormData();
       formData.append("file", file);
       formData.append("fileName", file.name);
@@ -87,6 +86,14 @@ const CreateProfilePage = () => {
       formData.append("token", token);
 
       formData.append("folder", "/profile-pictures");
+
+      for (let [key, value] of formData.entries()) {
+        if (key === "file") {
+          console.log(`${key}: [File object]`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
 
       const uploadResponse = await axios.post(
         "https://upload.imagekit.io/api/v1/files/upload",

@@ -35,7 +35,7 @@ const ProfileForm = () => {
           Profile Picture
         </label> */}
         <div className="flex items-center space-x-4">
-          <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+          <div className="w-20 h-20 font-family-neue rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
             {previewUrl ? (
               <img
                 src={previewUrl}

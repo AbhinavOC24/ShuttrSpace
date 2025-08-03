@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 import Image from "next/image";
 
@@ -9,10 +9,10 @@ import { calculateAge } from "@/utils/dateUtils";
 import { useProfileStore } from "@/store/useProfileStore";
 import { useProfile } from "@/hooks/useProfile";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
-
+import gear from "@public/Gear.svg";
 function ProfilePage() {
   const store = useProfileStore();
-
+  const [uploadToBlockChain, setUploadToBlockChain] = useState<boolean>(false);
   useProfile();
   const { uploadFiles } = useUploadFiles();
   const { slug } = useParams();
@@ -53,7 +53,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-[90px] pt-[60px] bg-black text-white">
+    <div className="min-h-screen flex flex-col items-center justify-center px-[90px] pt-[40px] bg-black text-white">
       <div className="bg-black rounded-lg shadow-lg w-full h-[1000px] flex flex-col gap-[60px]">
         <div className="flex gap-[32px]">
           <div className="relative w-[250px] h-[252px] rounded-[20px] overflow-hidden">
@@ -67,7 +67,7 @@ function ProfilePage() {
           <div className="flex flex-col gap-[2px]">
             <div className="flex flex-col gap-[10px]">
               <div className="flex flex-col">
-                <div className="flex gap-[10px] items-center">
+                <div className="flex gap-[10px] items-center  w-fit">
                   <div className="font-family-helvetica text-[32px]">
                     {store.userProfile.name}
                   </div>
@@ -75,14 +75,18 @@ function ProfilePage() {
                   <div className="text-[28px] font-family-helvetica font-medium">
                     {calculateAge(store.userProfile.birthDate)}
                   </div>
+
+                  <div className="w-10 h-10 cursor-pointer rounded-md bg-white/5 border-[0.5px] border-[#E0DEDE]/20 shadow-[inset_1px_1px_4px_0_rgba(255,244,244,0.25)] hover:shadow-[inset_2px_2px_4px_0_rgba(255,244,244,0.25),0_2px_2px_0_rgba(255,255,255,0.2)] transition-shadow duration-200 flex justify-center items-center">
+                    <Image src={gear} alt="gear" width={25} height={25} />
+                  </div>
                 </div>
                 <div className="font-family-helvetica text-[16px] font-medium -translate-y-1">
-                  Uttarakhand,Ind
+                  {store.userProfile.location}
                 </div>
               </div>
 
               <div className="antialiased text-white w-[571px] h-[107px] font-family-neue font-medium text-[18px] leading-5">
-                Emerging concert photographer... {store.userProfile.bio}
+                {store.userProfile.bio}
               </div>
             </div>
 
@@ -101,18 +105,18 @@ function ProfilePage() {
                   } cursor-pointer gap-[6px] h-[30px] px-[12px] py-[2px] flex items-center rounded-[10px]`}
                 >
                   <div
-                    className={`w-[5px] h-[5px] rounded-full ${
+                    className={`w-[5px] h-[5px]  rounded-full ${
                       store.selectedTags.includes("collections")
                         ? "bg-black"
                         : "bg-white"
-                    }`}
+                    } transition-colors`}
                   ></div>
                   <span className="font-family-neue font-medium text-[14px]">
                     Collections
                   </span>
                 </div>
                 <div className="w-px h-[30px] bg-gray-400"></div>
-                <div className="flex flex-wrap gap-[4px]">
+                <div className="flex flex-wrap gap-[6px]">
                   {store.userProfile.tags.map((tag, idx) => {
                     const isSelected = store.selectedTags.includes(tag);
                     return (
@@ -123,7 +127,7 @@ function ProfilePage() {
                           isSelected
                             ? "bg-white text-black border-[0.5px] border-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.8)]"
                             : "border-[#4d4d4d] text-white border-[0.5px] shadow-[inset_2px_2px_4px_rgba(255,255,255,0.3)]"
-                        } cursor-pointer gap-[8px] px-[14px] py-[2px] flex items-center rounded-[10px]`}
+                        } cursor-pointer gap-[8px] px-[14px] py-[2px] flex items-center rounded-[10px] transition-colors`}
                       >
                         <div
                           className={`w-[5px] h-[5px] rounded-full ${

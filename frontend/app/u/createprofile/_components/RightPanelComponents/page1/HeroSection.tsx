@@ -68,7 +68,7 @@ const HeroSection = () => {
           <textarea
             value={formData.bio}
             onChange={(e) => setFormData({ bio: e.target.value })}
-            className="w-full bg-opacity-5 mb-[7px] py-[12px] px-[10px] border-[0.5px]border-[#4d4d4d]  text-[14px]   rounded-[10px] focus:outline-none font-family-neue font-medium"
+            className="w-full bg-opacity-5 mb-[7px] py-[12px] px-[10px] border-[0.5px] border-[#4d4d4d]  text-[14px]   rounded-[10px] focus:outline-none font-family-neue font-medium"
             rows={4}
             placeholder="Emerging concert photographer with a growing love for capturing live music moments..."
           />

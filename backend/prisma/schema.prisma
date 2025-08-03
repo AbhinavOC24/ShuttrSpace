@@ -18,6 +18,11 @@
     id   String   @id @default(cuid()) 
     name String 
     bio String
+    location String
+    twitter String?
+    linkedin String?
+    email String?
+    instagram String?
     publicKey String @unique
     slug String    @unique
     profilePic String
