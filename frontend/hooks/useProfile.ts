@@ -2,12 +2,13 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useProfileStore } from "@/store/useProfileStore";
-
+import { useRouter } from "next/navigation";
 import { useErrorStore } from "@/store/useErrorStore";
 export const useProfile = () => {
   const store = useProfileStore();
   const { setGlobalError } = useErrorStore();
   const { slug } = useParams();
+  const router = useRouter();
   useEffect(() => {
     const getProfile = async () => {
       try {
@@ -36,6 +37,7 @@ export const useProfile = () => {
             err?.message ||
             "Failed to fetch profile"
         );
+        store.setNotFound(true);
       }
     };
     getProfile();

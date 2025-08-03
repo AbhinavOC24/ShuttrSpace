@@ -11,11 +11,11 @@ import { useProfile } from "@/hooks/useProfile";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
 
 function ProfilePage() {
+  const store = useProfileStore();
+
   useProfile();
   const { uploadFiles } = useUploadFiles();
   const { slug } = useParams();
-
-  const store = useProfileStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -39,6 +39,10 @@ function ProfilePage() {
   const prevPhoto = () => {
     if (store.currentIndex > 0) store.setCurrentIndex(store.currentIndex - 1);
   };
+
+  if (store.notFound) {
+    return <p>No profile exists for this user.</p>;
+  }
 
   if (!store.userProfile) {
     return (

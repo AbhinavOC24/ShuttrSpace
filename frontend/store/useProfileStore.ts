@@ -47,12 +47,15 @@ interface ProfileState {
   setUploadQueue: (photos: PhotosFromUploadQueue[]) => void;
   setCurrentIndex: (index: number) => void;
   toggleTag: (tag: string) => void;
+  notFound: boolean;
+  setNotFound: (notFound: boolean) => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({
   userProfile: null,
   canEdit: false,
-
+  notFound: false,
+  setNotFound: (notFound) => set({ notFound }),
   selectedTags: [],
 
   uploadImageModalStatus: false,

@@ -28,20 +28,20 @@ const HeroSection = () => {
       <div className="flex flex-col z-10">
         <div className="flex  mt-[30px] gap-[10px]  ">
           <div className="flex flex-col gap-[6px] ">
-            <label className="block text-[12px] text-[#9c9c9c] font-family-neue font-medium  ">
+            <label className="block text-[14px] text-[#9c9c9c] font-family-neue font-medium  ">
               Display Name
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ name: e.target.value })}
-              className=" py-[12px] px-[10px] w-[188px] h-[38px] rounded-[10px] mb-[10px] border-[0.5px] text-[12px] border-[#4d4d4d] focus:outline-none font-family-neue font-medium self-stretch"
+              className=" py-[12px] px-[10px] w-[188px] h-[38px] rounded-[10px] mb-[10px] border-[0.5px] text-[14px] border-[#4d4d4d] focus:outline-none font-family-neue font-medium self-stretch"
               placeholder="Mark Twin"
             />
           </div>
           {/* Birth-Date (keeping static placeholder for now) */}
           <div className="flex flex-col gap-[6px]">
-            <label className="block text-[12px] text-[#9c9c9c] font-family-neue font-medium">
+            <label className="block text-[14px] text-[#9c9c9c] font-family-neue font-medium">
               Birth Date
             </label>
             <DatePicker
@@ -54,7 +54,7 @@ const HeroSection = () => {
               dateFormat="dd/MM/yyyy"
               placeholderText="dd/mm/yyyy"
               customInput={
-                <input className="px-[10px] w-[188px] h-[38px] rounded-[10px] border-[0.5px] text-[12px] border-[#4d4d4d] focus:outline-none font-family-neue font-medium" />
+                <input className="px-[10px] w-[188px] h-[38px] rounded-[10px] border-[0.5px] text-[14px] border-[#4d4d4d] focus:outline-none font-family-neue font-medium" />
               }
             />
           </div>
@@ -62,13 +62,13 @@ const HeroSection = () => {
 
         {/* Bio */}
         <div className="flex flex-col gap-[6px]">
-          <label className="block text-[12px] text-[#9c9c9c] font-family-neue font-medium  ">
+          <label className="block text-[14px] text-[#9c9c9c] font-family-neue font-medium  ">
             Bio
           </label>
           <textarea
             value={formData.bio}
             onChange={(e) => setFormData({ bio: e.target.value })}
-            className="w-full bg-opacity-5 mb-[7px] py-[12px] px-[10px] border-[0.5px] text-[12px] border-[#4d4d4d]  rounded-[10px] focus:outline-none font-family-neue font-medium"
+            className="w-full bg-opacity-5 mb-[7px] py-[12px] px-[10px] border-[0.5px] text-[14px] border-[#4d4d4d]  rounded-[10px] focus:outline-none font-family-neue font-medium"
             rows={4}
             placeholder="Emerging concert photographer with a growing love for capturing live music moments..."
           />
