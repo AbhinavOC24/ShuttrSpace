@@ -88,3 +88,62 @@ body {
 
   overflow: hidden;
 }
+
+.social-box {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(41, 41, 41, 0.6);
+  border-radius: 6px;
+  box-shadow: inset 2px 2px 2px 0 rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.social-box:hover.twitter-box {
+  box-shadow: inset 2px 2px 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.social-box:hover.email-box {
+  box-shadow: inset 2px 2px 2px 0 rgba(237, 53, 53, 0.7);
+}
+
+.social-box:hover.linkedin-box {
+  box-shadow: inset 2px 2px 2px 0 rgba(75, 181, 226, 0.7);
+}
+
+.social-box:hover.instagram-box {
+  box-shadow: inset 2px 2px 2px 0 rgba(181, 75, 226, 0.7);
+}
+
+.social-icon {
+  filter: brightness(0) invert(1);
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.twitter-box:hover .twitter-glow {
+  opacity: 1;
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #ffffff)
+    drop-shadow(0 0 20px #ffffff);
+}
+
+.email-box:hover .email-glow {
+  opacity: 1;
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #ed3535)
+    drop-shadow(0 0 20px #ed3535);
+}
+
+.linkedin-box:hover .linkedin-glow {
+  opacity: 1;
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #4bb5e2)
+    drop-shadow(0 0 20px #4bb5e2);
+}
+
+.instagram-box:hover .instagram-glow {
+  opacity: 1;
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #b54be2)
+    drop-shadow(0 0 20px #b54be2);
+}
