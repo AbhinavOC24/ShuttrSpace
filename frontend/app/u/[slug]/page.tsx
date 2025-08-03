@@ -9,10 +9,12 @@ import { calculateAge } from "@/utils/dateUtils";
 import { useProfileStore } from "@/store/useProfileStore";
 import { useProfile } from "@/hooks/useProfile";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
+import SettingsModal from "./_components/SettingsModal";
 import gear from "@public/Gear.svg";
 function ProfilePage() {
   const store = useProfileStore();
   const [uploadToBlockChain, setUploadToBlockChain] = useState<boolean>(false);
+  const [settingModalStatus, setSettingModalStatus] = useState(false);
   useProfile();
   const { uploadFiles } = useUploadFiles();
   const { slug } = useParams();
@@ -76,9 +78,14 @@ function ProfilePage() {
                     {calculateAge(store.userProfile.birthDate)}
                   </div>
 
-                  <div className="w-10 h-10 cursor-pointer rounded-md bg-white/5 border-[0.5px] border-[#E0DEDE]/20 shadow-[inset_1px_1px_4px_0_rgba(255,244,244,0.25)] hover:shadow-[inset_2px_2px_4px_0_rgba(255,244,244,0.25),0_2px_2px_0_rgba(255,255,255,0.2)] transition-shadow duration-200 flex justify-center items-center">
-                    <Image src={gear} alt="gear" width={25} height={25} />
-                  </div>
+                  {store.canEdit && (
+                    <div
+                      onClick={() => setSettingModalStatus(true)}
+                      className="w-10 h-10 ml-2 cursor-pointer rounded-md bg-white/5 border-[0.5px] border-[#E0DEDE]/20 shadow-[inset_1px_1px_4px_0_rgba(255,244,244,0.25)] hover:shadow-[inset_2px_2px_4px_0_rgba(255,244,244,0.25),0_2px_2px_0_rgba(255,255,255,0.2)] transition-shadow duration-200 flex justify-center items-center"
+                    >
+                      <Image src={gear} alt="gear" width={25} height={25} />
+                    </div>
+                  )}
                 </div>
                 <div className="font-family-helvetica text-[16px] font-medium -translate-y-1">
                   {store.userProfile.location}
@@ -263,6 +270,14 @@ function ProfilePage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Settings Modal */}
+      {store.canEdit && (
+        <SettingsModal
+          isOpen={settingModalStatus}
+          onClose={() => setSettingModalStatus(false)}
+        />
       )}
     </div>
   );

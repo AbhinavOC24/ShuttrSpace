@@ -249,29 +249,45 @@ export const logout = (req: Request, res: Response) => {
     res.status(200).json({ message: "Logged out" });
   });
 };
-export const updateProfilePic = async (req: Request, res: Response) => {
+
+export const updateProfile = async (req: Request, res: Response) => {
   try {
     if (!req.session || !req.session.authenticated || !req.session.publicKey) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { imageUrl } = req.body;
-    if (!imageUrl || typeof imageUrl !== "string") {
-      return res.status(400).json({ error: "Invalid image URL" });
+    const { bio, location, birthDate, profilePic, socialLinks } = req.body;
+
+    const updateData: any = {};
+
+    if (bio !== undefined) updateData.bio = bio;
+    if (location !== undefined) updateData.location = location;
+    if (birthDate !== undefined) updateData.birthDate = birthDate;
+    if (profilePic !== undefined) updateData.profilePic = profilePic;
+
+    // Handle social links
+    if (socialLinks) {
+      if (socialLinks.twitter !== undefined)
+        updateData.twitter = socialLinks.twitter;
+      if (socialLinks.instagram !== undefined)
+        updateData.instagram = socialLinks.instagram;
+      if (socialLinks.linkedin !== undefined)
+        updateData.linkedin = socialLinks.linkedin;
+      if (socialLinks.email !== undefined) updateData.email = socialLinks.email;
     }
 
     const updatedUser = await prismaClient.user.update({
       where: { publicKey: req.session.publicKey },
-      data: { profilePic: imageUrl },
-      select: { profilePic: true },
+      data: updateData,
     });
 
     return res.status(200).json({
-      message: "Profile picture updated successfully",
-      profilePic: updatedUser.profilePic,
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
     });
   } catch (error) {
-    console.error("Error updating profile picture:", error);
-    return res.status(500).json({ error: "Failed to update profile picture" });
+    console.error("Error updating profile:", error);
+    return res.status(500).json({ error: "Failed to update profile" });
   }
 };

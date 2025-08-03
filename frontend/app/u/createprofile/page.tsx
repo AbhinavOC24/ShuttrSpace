@@ -128,7 +128,6 @@ const CreateProfilePage = () => {
 
     setLoading(true);
     try {
-      // Upload image if provided
       let imageUrl;
       const localFile = profileFile;
       if (localFile) {

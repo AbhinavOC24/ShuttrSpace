@@ -6,7 +6,7 @@ import {
   getProfile,
   verifySign,
   checkAuthStatus,
-  updateProfilePic,
+  updateProfile,
 } from "../controllers/auth.controller";
 
 import { checkAuth, debugSession } from "../middleware/checkAuth";
@@ -17,7 +17,8 @@ router.post("/nonce", getNonce);
 router.post("/getProfile", getProfile);
 router.get("/getSlug", checkAuth, checkSessionStatusAndGetSlug);
 router.post("/createProfile", debugSession, checkAuth, createProfile);
-router.post("/updateProfilePic", checkAuth, updateProfilePic);
+
+router.put("/updateProfile", checkAuth, updateProfile);
 router.get("/checkAuthStatus", checkAuth, checkAuthStatus);
 
 export default router;
