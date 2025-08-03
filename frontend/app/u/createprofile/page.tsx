@@ -7,22 +7,35 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useErrorStore } from "@/store/useErrorStore";
 import LeftPanel from "../_components/LoginPage/LeftPanel";
 import Image from "next/image";
-import CreatorFeatures from "./_components/RightPanelComponents/CreatorFeatures";
-import HeroSection from "./_components/RightPanelComponents/HeroSection";
-import SolanaCredits from "./_components/RightPanelComponents/SolanaCredits";
+import CreatorFeatures from "./_components/RightPanelComponents/page1/CreatorFeatures";
+import HeroSection from "./_components/RightPanelComponents/page1/HeroSection";
+import SolanaCredits from "./_components/RightPanelComponents/page1/SolanaCredits";
+import ProfileForm from "./_components/RightPanelComponents/page2/ProfileForm";
 import back_tats from "@public/back_tats.png";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const CreateProfilePage = () => {
   const { publicKey } = useWallet();
+
+  const [page, setPage] = useState(1);
   const router = useRouter();
-  const { formData, setFormData, resetFormData } = useAuthStore();
+  const { formData, setFormData, resetFormData, profileFile } = useAuthStore();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [localFile, setLocalFile] = useState<File | null>(null);
+
   const [loading, setLoading] = useState(false);
 
   const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
+
+  // Navigation functions
+  const nextPage = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  const previousPage = () => {
+    setPage((prev) => Math.max(1, prev - 1));
+  };
+
   useEffect(() => {
     clearGlobalError();
 
@@ -55,73 +68,80 @@ const CreateProfilePage = () => {
     checkAuthStatus();
   }, []);
 
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0] || null;
-  //   setLocalFile(file);
-  //   setPreviewUrl(file ? URL.createObjectURL(file) : null);
-  // };
+  const uploadToImageKit = async (file: File): Promise<string> => {
+    try {
+      const authResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
+      );
 
-  // const uploadToImageKit = async (file: File): Promise<string> => {
-  //   try {
-  //     const authResponse = await axios.get(
-  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
-  //     );
+      const { signature, expire, token } = authResponse.data;
+      const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
 
-  //     const { signature, expire, token } = authResponse.data;
-  //     const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
+      console.log("authresponse", authResponse.data);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", file.name);
+      formData.append("publicKey", publicKey);
+      formData.append("signature", signature);
+      formData.append("expire", expire.toString());
+      formData.append("token", token);
 
-  //     console.log("authresponse", authResponse.data);
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-  //     formData.append("fileName", file.name);
-  //     formData.append("publicKey", publicKey);
-  //     formData.append("signature", signature);
-  //     formData.append("expire", expire.toString());
-  //     formData.append("token", token);
+      formData.append("folder", "/profile-pictures");
 
-  //     formData.append("folder", "/profile-pictures");
+      const uploadResponse = await axios.post(
+        "https://upload.imagekit.io/api/v1/files/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 30000, // 30 second timeout
+        }
+      );
 
-  //     const uploadResponse = await axios.post(
-  //       "https://upload.imagekit.io/api/v1/files/upload",
-  //       formData,
-  //       {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //         timeout: 30000, // 30 second timeout
-  //       }
-  //     );
+      return uploadResponse.data.url;
+    } catch (error) {
+      console.error("ImageKit upload error:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Response data:", error.response?.data);
+        console.error("Response status:", error.response?.status);
+      }
+      throw new Error("Failed to upload image");
+    }
+  };
 
-  //     return uploadResponse.data.url;
-  //   } catch (error) {
-  //     console.error("ImageKit upload error:", error);
-  //     if (axios.isAxiosError(error)) {
-  //       console.error("Response data:", error.response?.data);
-  //       console.error("Response status:", error.response?.status);
-  //     }
-  //     throw new Error("Failed to upload image");
-  //   }
-  // };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearGlobalError();
 
     if (!formData.name.trim() || !formData.bio.trim()) {
-      setGlobalError("All fields are required.");
+      setGlobalError("Name and bio are required.");
       return;
     }
 
     setLoading(true);
     try {
-      // Upload image first
-      // const imageUrl = await uploadToImageKit(localFile);
-      const imageUrl = "No image";
+      // Upload image if provided
+      let imageUrl;
+      const localFile = profileFile;
+      if (localFile) {
+        imageUrl = await uploadToImageKit(localFile);
+      }
       setFormData({ profilePic: imageUrl });
 
       // Now send form data to backend
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/createProfile`,
-        { ...formData, profilePic: imageUrl },
+        {
+          ...formData,
+          profilePic: imageUrl,
+          socialLinks: {
+            twitter: formData.twitter,
+            instagram: formData.instagram,
+            linkedin: formData.linkedin,
+            email: formData.email,
+          },
+        },
         { withCredentials: true }
       );
 
@@ -140,74 +160,15 @@ const CreateProfilePage = () => {
     }
   };
 
+  const handleButtonClick = () => {
+    if (page === 1) {
+      nextPage();
+    } else {
+      handleSubmit(new Event("submit") as any);
+    }
+  };
+
   return (
-    // <div className="min-h-screen flex flex-col items-center justify-center p-4">
-    //   <h1 className="text-2xl font-bold mb-4">Create Your Profile</h1>
-    //   <form
-    //     onSubmit={handleSubmit}
-    //     className="bg-black shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md"
-    //   >
-    //     <div className="mb-4">
-    //       <label className="block text-gray-700 text-sm font-bold mb-2">
-    //         Name
-    //       </label>
-    //       <input
-    //         type="text"
-    //         name="name"
-    //         value={formData.name}
-    //         onChange={handleChange}
-    //         className="shadow border rounded w-full py-2 px-3"
-    //         placeholder="Your name"
-    //         required
-    //       />
-    //     </div>
-    //     <div className="mb-4">
-    //       <label className="block text-gray-700 text-sm font-bold mb-2">
-    //         Profile Picture
-    //       </label>
-    //       <input
-    //         type="file"
-    //         accept="image/*"
-    //         onChange={handleFileChange}
-    //         className="block w-full text-sm file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-    //         required
-    //       />
-    //       {previewUrl && (
-    //         <img
-    //           src={previewUrl}
-    //           alt="Preview"
-    //           className="mt-2 w-24 h-24 object-cover rounded-full border"
-    //         />
-    //       )}
-    //     </div>
-    //     <div className="mb-4">
-    //       <label className="block text-gray-700 text-sm font-bold mb-2">
-    //         Bio
-    //       </label>
-    //       <textarea
-    //         name="bio"
-    //         value={formData.bio}
-    //         onChange={handleChange}
-    //         className="shadow border rounded w-full py-2 px-3"
-    //         rows={4}
-    //         placeholder="Tell us about yourself"
-    //         required
-    //       />
-    //     </div>
-    //     {globalError && (
-    //       <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
-    //         {globalError}
-    //       </div>
-    //     )}
-    //     <button
-    //       type="submit"
-    //       disabled={loading}
-    //       className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
-    //     >
-    //       {loading ? "Creating..." : "Create Profile"}
-    //     </button>
-    //   </form>
-    // </div>
     <div className="overflow-hidden flex items-center justify-center h-screen">
       {/* Global Error Display */}
       {globalError && (
@@ -215,29 +176,75 @@ const CreateProfilePage = () => {
           {globalError}
         </div>
       )}
-      <div className="w-[974px] h-[610px] flex bg-[#151515] rounded-5xl">
+      <div className="w-[974px] h-[610px] flex bg-[#151515] rounded-5xl relative">
+        {/* Back Arrow Button - only show if not on page 1 */}
+        {page > 1 && (
+          <button
+            onClick={previousPage}
+            className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-black border border-[#4d4d4d] rounded-full hover:bg-white hover:text-black transition-all duration-200"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
         <LeftPanel />
 
-        <div className="w-[490px] relative rounded-5xl ">
-          <div className="relative flex flex-col gap-[20px] w-[389px] h-fit top-[60px] left-[50px] ">
-            <HeroSection />
+        {page == 1 && (
+          <div className="w-[490px] relative rounded-5xl ">
+            <div className="relative flex flex-col gap-[20px] w-[389px] h-fit top-[60px] left-[50px] ">
+              <HeroSection />
 
-            <CreatorFeatures />
-          </div>
+              <CreatorFeatures />
+            </div>
 
-          <div className="w-full absolute rounded-5xl h-[50px] bottom-0">
-            <SolanaCredits />
-            <button
-              onClick={handleSubmit}
-              className={`h-[50px] absolute w-[208px] flex items-center justify-center bottom-0 right-0 rounded-br-[40px] rounded-tl-[10px]
+            <div className="w-full absolute rounded-5xl h-[50px] bottom-0">
+              <SolanaCredits />
+              <button
+                onClick={handleButtonClick}
+                className={`h-[50px] absolute w-[208px] flex items-center justify-center bottom-0 right-0 rounded-br-[40px] rounded-tl-[10px]
           font-family-neue font-medium text-sm border border-[#4d4d4d] shadow-[inset_4px_6px_4px_2px_rgba(255,255,255,0.1)] overflow-hidden
           transition ease-in-out bg-black cursor-pointer hover:bg-white hover:text-black hover:border-white hover:shadow-[inset_2px_2px_4.3px_2px_rgba(0,0,0,0.5)]  
           `}
-            >
-              Sign In
-            </button>
+              >
+                {page === 1 ? "Next" : "Sign In"}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {page == 2 && (
+          <div className="w-[490px] relative rounded-5xl">
+            <div className="relative flex flex-col gap-[20px] w-[389px] h-fit top-[60px] left-[50px]">
+              <ProfileForm />
+            </div>
+
+            <div className="w-full absolute rounded-5xl h-[50px] bottom-0">
+              <SolanaCredits />
+              <button
+                onClick={handleButtonClick}
+                disabled={loading}
+                className={`h-[50px] absolute w-[208px] flex items-center justify-center bottom-0 right-0 rounded-br-[40px] rounded-tl-[10px]
+          font-family-neue font-medium text-sm border border-[#4d4d4d] shadow-[inset_4px_6px_4px_2px_rgba(255,255,255,0.1)] overflow-hidden
+          transition ease-in-out bg-black cursor-pointer hover:bg-white hover:text-black hover:border-white hover:shadow-[inset_2px_2px_4.3px_2px_rgba(0,0,0,0.5)]  
+          ${loading ? "opacity-50 cursor-not-allowed" : ""}
+          `}
+              >
+                {loading ? "Creating..." : "Sign In"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

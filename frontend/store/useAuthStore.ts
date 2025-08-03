@@ -9,17 +9,24 @@ type FormDataType = {
   profilePic: string;
   tags: string[];
   birthDate: string;
+  location: string;
+  twitter: string;
+  instagram: string;
+  linkedin: string;
+  email: string;
 };
 
 type AuthState = {
   formData: FormDataType;
   setFormData: (data: Partial<FormDataType>) => void;
+  profileFile: File | null;
   toggleTag: (tag: string) => void;
   resetFormData: () => void;
   loading: boolean;
   authError: string | null;
   setAuthError: (msg: string | null) => void;
   setLoading: (val: boolean) => void;
+  setProfileFile: (input: File | null) => void;
   checkAuthAndFetchSlug: () => Promise<{
     authenticated: boolean;
     hasProfile: boolean;
@@ -33,6 +40,8 @@ type AuthState = {
   } | null>;
 };
 export const useAuthStore = create<AuthState>((set) => ({
+  setProfileFile: (input) => set({ profileFile: input }),
+  profileFile: null,
   formData: {
     publicKey: "",
     name: "",
@@ -40,6 +49,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     profilePic: "",
     tags: [] as string[],
     birthDate: "",
+    location: "",
+    twitter: "",
+    instagram: "",
+    linkedin: "",
+    email: "",
   },
   setFormData: (data) =>
     set((state) => ({
@@ -63,6 +77,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         profilePic: "",
         birthDate: "",
         tags: [] as string[],
+        location: "",
+        twitter: "",
+        instagram: "",
+        linkedin: "",
+        email: "",
       },
     }),
   loading: false,
