@@ -46,6 +46,12 @@
     id Int @id @default(autoincrement())
     title String
     tags String[]
+    location String
+    cameraname String
+    iso String
+    aperture String
+    shutterspeed String
+    lens String
     thumbnailUrl String 
     imageUrl String
     metadataCid String

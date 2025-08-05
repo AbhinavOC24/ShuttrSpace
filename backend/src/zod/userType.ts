@@ -28,12 +28,23 @@ export const createUserSchema = z.object({
   publicKey: publicKeySchema,
 });
 
+const cameraDetails = z.object({
+  cameraname: z.string(),
+  lens: z.string(),
+  aperture: z.string(),
+  iso: z.string(),
+  shutterspeed: z.string(),
+});
+
 export const createPhotoSchema = z.object({
   title: z.string().min(1, "Title is required"),
   tags: z.array(z.string()).optional().default([]),
   imageUrl: z.string().url("Valid image URL required"),
   thumbnailUrl: z.string().url("Valid thumbnail URL required"),
+  location: z.string().optional(),
+  cameraDetails: cameraDetails.optional(),
 });
+
 export const createPhotosArraySchema = z.object({
   metadataCid: z.string(),
   signature: z.string(),

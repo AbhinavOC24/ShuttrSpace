@@ -4,18 +4,15 @@ import React, { useState } from "react";
 
 import Image from "next/image";
 
-import { calculateAge } from "@/utils/dateUtils";
-
 import { useProfileStore } from "@/store/useProfileStore";
 import { useProfile } from "@/hooks/useProfile";
 import SettingsModal from "./_components/SettingsModal";
 import UploadImageModal from "./_components/UploadImageModal";
-import gear from "@public/Gear.svg";
-import SocialLinks from "./_components/SocialLinks";
+
 import Header from "./_components/Header";
 function ProfilePage() {
   const store = useProfileStore();
-  const [uploadToBlockChain, setUploadToBlockChain] = useState<boolean>(false);
+
   const [settingModalStatus, setSettingModalStatus] = useState(false);
   useProfile();
   const { slug } = useParams();

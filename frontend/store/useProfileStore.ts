@@ -14,10 +14,19 @@ export type UserProfile = {
   createdAt: string;
 };
 
+type cameraDetails = {
+  cameraname: string;
+  lens: string;
+  aperture: string;
+  iso: string;
+  shutterspeed: string;
+};
 export type PhotosFromUploadQueue = {
   file: File;
   title: string;
   tags: string[];
+  location?: string;
+  cameraDetails: cameraDetails;
   imageUrl?: string;
   thumbnailUrl?: string;
 };
@@ -26,6 +35,12 @@ export type PhotoFromDB = {
   id: number;
   title: string;
   tags: string[];
+  location?: string;
+  cameraname?: string;
+  lens?: string;
+  aperture?: string;
+  iso?: string;
+  shutterspeed?: string;
   photoUrl: string;
   thumbnailUrl: string;
   createdAt: string;
@@ -47,7 +62,7 @@ interface ProfileState {
   setUploading: (state: boolean) => void;
 
   setGallery: (photos: PhotoFromDB[]) => void;
-  addToGallery: (photos: PhotoFromDB[]) => void; // Add photos to existing gallery
+  addToGallery: (photos: PhotoFromDB[]) => void;
   resetUploadQueue: () => void;
   setUploadQueue: (photos: PhotosFromUploadQueue[]) => void;
   setCurrentIndex: (index: number) => void;

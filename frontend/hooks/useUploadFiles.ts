@@ -61,6 +61,8 @@ export const useUploadFiles = () => {
             tags: p.tags,
             imageUrl: p.imageUrl,
             thumbnailUrl: p.thumbnailUrl,
+            location: p.location,
+            cameraDetails: p.cameraDetails,
           })),
         };
 
@@ -97,6 +99,14 @@ export const useUploadFiles = () => {
             tags: p.tags,
             imageUrl: p.imageUrl,
             thumbnailUrl: p.thumbnailUrl,
+            location: p.location || "",
+            cameraDetails: p.cameraDetails || {
+              cameraname: "",
+              lens: "",
+              aperture: "",
+              iso: "",
+              shutterspeed: "",
+            },
           })),
           metadataCid,
           signature: bs58.encode(signature),

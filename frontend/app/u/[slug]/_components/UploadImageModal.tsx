@@ -18,6 +18,14 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
       file,
       title: "",
       tags: [],
+      location: "",
+      cameraDetails: {
+        cameraname: "",
+        lens: "",
+        aperture: "",
+        iso: "",
+        shutterspeed: "",
+      },
     }));
     store.setUploadQueue(newQueue);
     store.setCurrentIndex(0);
@@ -112,6 +120,24 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
 
                 <div className="text-[14px] flex flex-col gap-[12px]">
                   <label className="text-[#9c9c9c] text-sm text-[14px]">
+                    Location <span className="text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    value={store.uploadQueue[store.currentIndex].location || ""}
+                    onChange={(e) => {
+                      const updated = [...store.uploadQueue];
+                      updated[store.currentIndex].location = e.target.value;
+                      store.setUploadQueue(updated);
+                    }}
+                    placeholder="Enter location (optional)..."
+                    className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
+                  />
+                </div>
+
+                <div className="text-[14px] flex flex-col gap-[12px]">
+                  <label className="text-[#9c9c9c] text-sm text-[14px]">
                     Tags
                   </label>
                   <input
@@ -130,6 +156,132 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                     placeholder="Enter tags separated by commas..."
                     className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
                   />
+                </div>
+
+                {/* Camera Details Section */}
+                <div className="space-y-4">
+                  <h3 className="text-[#9c9c9c] text-sm text-[14px] font-semibold">
+                    Camera Details{" "}
+                    <span className="text-gray-500 font-normal">
+                      (optional)
+                    </span>
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-[14px] flex flex-col gap-[12px]">
+                      <label className="text-[#9c9c9c] text-sm text-[14px]">
+                        Camera Name{" "}
+                        <span className="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="cameraname"
+                        value={
+                          store.uploadQueue[store.currentIndex].cameraDetails
+                            .cameraname
+                        }
+                        onChange={(e) => {
+                          const updated = [...store.uploadQueue];
+                          updated[store.currentIndex].cameraDetails.cameraname =
+                            e.target.value;
+                          store.setUploadQueue(updated);
+                        }}
+                        placeholder="e.g., Canon EOS R5 (optional)"
+                        className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
+                      />
+                    </div>
+
+                    <div className="text-[14px] flex flex-col gap-[12px]">
+                      <label className="text-[#9c9c9c] text-sm text-[14px]">
+                        Lens <span className="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="lens"
+                        value={
+                          store.uploadQueue[store.currentIndex].cameraDetails
+                            .lens
+                        }
+                        onChange={(e) => {
+                          const updated = [...store.uploadQueue];
+                          updated[store.currentIndex].cameraDetails.lens =
+                            e.target.value;
+                          store.setUploadQueue(updated);
+                        }}
+                        placeholder="e.g., RF 24-70mm f/2.8 (optional)"
+                        className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
+                      />
+                    </div>
+
+                    <div className="text-[14px] flex flex-col gap-[12px]">
+                      <label className="text-[#9c9c9c] text-sm text-[14px]">
+                        Aperture{" "}
+                        <span className="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="aperture"
+                        value={
+                          store.uploadQueue[store.currentIndex].cameraDetails
+                            .aperture
+                        }
+                        onChange={(e) => {
+                          const updated = [...store.uploadQueue];
+                          updated[store.currentIndex].cameraDetails.aperture =
+                            e.target.value;
+                          store.setUploadQueue(updated);
+                        }}
+                        placeholder="e.g., f/2.8 (optional)"
+                        className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
+                      />
+                    </div>
+
+                    <div className="text-[14px] flex flex-col gap-[12px]">
+                      <label className="text-[#9c9c9c] text-sm text-[14px]">
+                        ISO <span className="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="iso"
+                        value={
+                          store.uploadQueue[store.currentIndex].cameraDetails
+                            .iso
+                        }
+                        onChange={(e) => {
+                          const updated = [...store.uploadQueue];
+                          updated[store.currentIndex].cameraDetails.iso =
+                            e.target.value;
+                          store.setUploadQueue(updated);
+                        }}
+                        placeholder="e.g., 100 (optional)"
+                        className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
+                      />
+                    </div>
+
+                    <div className="text-[14px] flex flex-col gap-[12px] col-span-2">
+                      <label className="text-[#9c9c9c] text-sm text-[14px]">
+                        Shutter Speed{" "}
+                        <span className="text-gray-500">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="shutterspeed"
+                        value={
+                          store.uploadQueue[store.currentIndex].cameraDetails
+                            .shutterspeed
+                        }
+                        onChange={(e) => {
+                          const updated = [...store.uploadQueue];
+                          updated[
+                            store.currentIndex
+                          ].cameraDetails.shutterspeed = e.target.value;
+                          store.setUploadQueue(updated);
+                        }}
+                        placeholder="e.g., 1/125s (optional)"
+                        className="w-full px-4 py-3 text-[14px] h-[38px] border-[0.5px] border-[#4d4d4d] rounded-[10px] text-white placeholder-gray-400 focus:outline-none transition-colors bg-transparent"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
