@@ -39,7 +39,7 @@ interface ProfileState {
   gallery: PhotoFromDB[];
   uploadQueue: PhotosFromUploadQueue[];
   currentIndex: number;
-
+  filteredGallery: () => PhotoFromDB[];
   setUserProfile: (profile: UserProfile | null) => void;
   setCanEdit: (canEdit: boolean) => void;
 
@@ -56,7 +56,7 @@ interface ProfileState {
   setNotFound: (notFound: boolean) => void;
 }
 
-export const useProfileStore = create<ProfileState>((set) => ({
+export const useProfileStore = create<ProfileState>((set, get) => ({
   userProfile: null,
   canEdit: false,
   notFound: false,
@@ -85,6 +85,17 @@ export const useProfileStore = create<ProfileState>((set) => ({
 
   setCurrentIndex: (index) => set({ currentIndex: index }),
 
+  filteredGallery: () => {
+    const { gallery, selectedTags } = get();
+
+    if (selectedTags.length === 0) return gallery;
+
+    return gallery.filter((photo) => {
+      if (!photo.tags || photo.tags.length === 0) return false;
+
+      return photo.tags.some((tag) => selectedTags.includes(tag));
+    });
+  },
   toggleTag: (tag) => {
     set((state) => ({
       selectedTags: state.selectedTags.includes(tag)
