@@ -54,7 +54,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
       <div className="bg-[#151515] p-[36px] rounded-[20px] w-[893px] h-[635px]  border border-[#4d4d4d]">
         <div className=" ">
           {/* File Upload Section */}
-          {store.uploadQueue.length == 0 && (
+          {/* {store.uploadQueue.length == 0 && (
             <div className="w-[367px] h-[563px] border border-[#4d4d4d] rounded-[10px] overflow-hidden flex-shrink-0">
               <Image
                 src={URL.createObjectURL(
@@ -66,8 +66,22 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                 className="w-full h-full object-cover"
               />
             </div>
+          )} */}
+          {/* File Upload Section */}
+          {store.uploadQueue.length == 0 && (
+            <div className="space-y-2">
+              <label className="text-white text-sm text-[14px]">
+                Select Images
+              </label>
+              <input
+                type="file"
+                onChange={handleChange}
+                multiple
+                accept="image/*"
+                className="text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 w-full"
+              />
+            </div>
           )}
-
           {/* Preview and Form Section */}
           {store.uploadQueue[store.currentIndex] && (
             <div className="flex gap-[36px]">
