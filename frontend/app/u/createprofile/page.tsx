@@ -6,7 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useErrorStore } from "@/store/useErrorStore";
 import LeftPanel from "../_components/LoginPage/LeftPanel";
-import Image from "next/image";
+
 import CreatorFeatures from "./_components/RightPanelComponents/page1/CreatorFeatures";
 import HeroSection from "./_components/RightPanelComponents/page1/HeroSection";
 import SolanaCredits from "./_components/RightPanelComponents/page1/SolanaCredits";
