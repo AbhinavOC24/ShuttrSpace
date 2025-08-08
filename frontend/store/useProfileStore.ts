@@ -41,15 +41,17 @@ export type PhotoFromDB = {
   aperture?: string;
   iso?: string;
   shutterspeed?: string;
-  photoUrl: string;
+  imageUrl: string;
   thumbnailUrl: string;
   createdAt: string;
 };
+
 interface ProfileState {
   userProfile: UserProfile | null;
   canEdit: boolean;
   selectedTags: string[];
   uploadImageModalStatus: boolean;
+  imageDetailModalStatus: boolean;
   uploading: boolean;
   gallery: PhotoFromDB[];
   uploadQueue: PhotosFromUploadQueue[];
@@ -57,8 +59,10 @@ interface ProfileState {
   filteredGallery: () => PhotoFromDB[];
   setUserProfile: (profile: UserProfile | null) => void;
   setCanEdit: (canEdit: boolean) => void;
-
+  selectedImage: PhotoFromDB | null;
   setuploadImageModalStatus: (state: boolean) => void;
+  setImageDetailModalStatus: (state: boolean) => void;
+
   setUploading: (state: boolean) => void;
 
   setGallery: (photos: PhotoFromDB[]) => void;
@@ -68,7 +72,10 @@ interface ProfileState {
   setCurrentIndex: (index: number) => void;
   toggleTag: (tag: string) => void;
   notFound: boolean;
+  setSelectedImage: (image: PhotoFromDB) => void;
   setNotFound: (notFound: boolean) => void;
+  uploaderPubkey: string | null;
+  setUploaderPubkey: (key: string) => void;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -76,16 +83,20 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   canEdit: false,
   notFound: false,
   setNotFound: (notFound) => set({ notFound }),
+  setUploaderPubkey: (key) => set({ uploaderPubkey: key }),
   selectedTags: [],
-
+  imageDetailModalStatus: false,
+  selectedImage: null,
+  uploaderPubkey: null,
   uploadImageModalStatus: false,
   uploading: false,
   gallery: [],
   uploadQueue: [],
   currentIndex: 0,
-
+  setSelectedImage: (image) => set({ selectedImage: image }),
   setUserProfile: (profile) => set({ userProfile: profile }),
   setCanEdit: (canEdit) => set({ canEdit }),
+  setImageDetailModalStatus: (state) => set({ imageDetailModalStatus: state }),
 
   setuploadImageModalStatus: (state) => set({ uploadImageModalStatus: state }),
   setUploading: (state) => set({ uploading: state }),

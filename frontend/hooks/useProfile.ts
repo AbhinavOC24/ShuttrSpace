@@ -29,7 +29,8 @@ export const useProfile = () => {
           const photoRes = await axios.get(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`
           );
-
+          store.setUploaderPubkey(photoRes.data.publicKey);
+          console.log(photoRes.data.photos);
           store.setGallery(photoRes.data.photos);
         }
       } catch (err: any) {

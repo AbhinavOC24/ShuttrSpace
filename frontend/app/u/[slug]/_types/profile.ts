@@ -20,7 +20,7 @@ export type PhotoFromDB = {
   id: number;
   title: string;
   tags: string[];
-  photoUrl: string;
+  imageUrl: string;
   thumbnailUrl: string;
   createdAt: string;
 };

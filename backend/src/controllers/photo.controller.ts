@@ -74,7 +74,7 @@ export const getPhotos = async (req: Request, res: Response) => {
     if (!slug) return;
     const userExists = await prismaClient.user.findUnique({
       where: { slug: slug },
-      select: { id: true },
+      select: { publicKey: true, id: true },
     });
 
     if (!userExists) {
@@ -100,7 +100,7 @@ export const getPhotos = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(200).json({ photos });
+    res.status(200).json({ photos, uploaderPubkey: userExists.publicKey });
   } catch (error) {
     console.error("Error in getPhotos:", error);
     res.status(500).json({ error: "Failed to fetch photos" });

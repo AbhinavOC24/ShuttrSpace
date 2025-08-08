@@ -10,6 +10,7 @@ import SettingsModal from "./_components/SettingsModal";
 import UploadImageModal from "./_components/UploadImageModal";
 
 import Header from "./_components/Header";
+import ImageDetails from "./_components/ImageDetails";
 function ProfilePage() {
   const store = useProfileStore();
 
@@ -43,6 +44,10 @@ function ProfilePage() {
               alt={photo.title || `Uploaded ${index}`}
               width={100}
               height={100}
+              onClick={() => {
+                store.setSelectedImage(photo);
+                store.setImageDetailModalStatus(true);
+              }}
             />
           ))}
           {store.canEdit && (
@@ -55,7 +60,7 @@ function ProfilePage() {
           )}
         </div>
       </div>
-
+      {store.imageDetailModalStatus && <ImageDetails />}
       <UploadImageModal slug={slug as string} />
 
       {/* Settings Modal */}
