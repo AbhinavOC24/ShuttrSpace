@@ -6,7 +6,7 @@ import pica from "pica";
  * @param maxWidth Maximum thumbnail width (default 800px)
  * @returns A new File (JPEG thumbnail)
  */
-export async function generateThumbnail(file: File, maxWidth = 800) {
+export async function generateThumbnail(file: File, maxWidth = 1600) {
   const img = document.createElement("img");
   img.src = URL.createObjectURL(file);
 
@@ -22,6 +22,11 @@ export async function generateThumbnail(file: File, maxWidth = 800) {
   await picaInstance.resize(img, canvas);
 
   // Convert canvas to Blob → File
-  const blob = await picaInstance.toBlob(canvas, "image/jpeg", 0.8);
-  return new File([blob], `thumb_${file.name}`, { type: "image/jpeg" });
+  // const blob = await picaInstance.toBlob(canvas, "image/webp", 0.9);
+  // return new File([blob], `thumb_${file.name}`, { type: "image/jpeg" });
+
+  const blob = await picaInstance.toBlob(canvas, "image/webp", 0.9);
+  return new File([blob], `thumb_${file.name.split(".")[0]}.webp`, {
+    type: "image/webp",
+  });
 }

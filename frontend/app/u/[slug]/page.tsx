@@ -36,7 +36,7 @@ function ProfilePage() {
       <div className="bg-black rounded-lg shadow-lg w-full h-[1000px] flex flex-col gap-[60px]">
         <Header setSettingModalStatus={setSettingModalStatus} />
 
-        <div className="h-full w-full p-[32px] bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999]">
+        <div className="h-fit w-full p-[32px] bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999] columns-[320px]">
           {photosToShow.map((photo, index) => (
             <Image
               key={index}
@@ -44,22 +44,25 @@ function ProfilePage() {
               alt={photo.title || `Uploaded ${index}`}
               width={100}
               height={100}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="w-full object-contain"
               onClick={() => {
                 store.setSelectedImage(photo);
                 store.setImageDetailModalStatus(true);
               }}
             />
           ))}
-          {store.canEdit && (
-            <button
-              onClick={() => store.setuploadImageModalStatus(true)}
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Upload Photos
-            </button>
-          )}
         </div>
       </div>
+
+      {store.canEdit && (
+        <button
+          onClick={() => store.setuploadImageModalStatus(true)}
+          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700   bottom-10 right-0 sticky"
+        >
+          Upload Photos
+        </button>
+      )}
       {store.imageDetailModalStatus && <ImageDetails />}
       <UploadImageModal slug={slug as string} />
 
