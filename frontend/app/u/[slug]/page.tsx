@@ -44,6 +44,7 @@ function ProfilePage() {
               alt={photo.title || `Uploaded ${index}`}
               width={100}
               height={100}
+              unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="w-full object-contain"
               onClick={() => {

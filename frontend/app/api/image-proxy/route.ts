@@ -1,6 +1,60 @@
-// app/api/image-proxy/route.ts
+// // app/api/image-proxy/route.ts
 
+// import { NextRequest } from "next/server";
+
+// export async function GET(req: NextRequest) {
+//   const { searchParams } = new URL(req.url);
+//   const cid = searchParams.get("cid");
+
+//   if (!cid) {
+//     return new Response("CID missing", { status: 400 });
+//   }
+
+//   const pinataUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
+
+//   try {
+//     const response = await fetch(pinataUrl);
+
+//     if (!response.ok) {
+//       return new Response("Failed to fetch image", { status: 500 });
+//     }
+
+//     const contentType = response.headers.get("content-type") || "image/jpeg";
+//     const buffer = await response.arrayBuffer();
+
+//     return new Response(buffer, {
+//       status: 200,
+//       headers: {
+//         "Content-Type": contentType,
+//         "Cache-Control": "public, max-age=86400", // optional caching
+//       },
+//     });
+//   } catch (err) {
+//     return new Response("Error fetching image", { status: 500 });
+//   }
+// }
+
+// app/api/image-proxy/route.ts
 import { NextRequest } from "next/server";
+
+const gateways = [
+  "https://cloudflare-ipfs.com/ipfs/",
+  "https://ipfs.io/ipfs/",
+  "https://gateway.pinata.cloud/ipfs/",
+];
+
+async function fetchWithTimeout(url: string, ms: number) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    return res;
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,26 +64,26 @@ export async function GET(req: NextRequest) {
     return new Response("CID missing", { status: 400 });
   }
 
-  const pinataUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
-
-  try {
-    const response = await fetch(pinataUrl);
-
-    if (!response.ok) {
-      return new Response("Failed to fetch image", { status: 500 });
+  for (const gateway of gateways) {
+    try {
+      const res = await fetchWithTimeout(`${gateway}${cid}`, 5000);
+      if (res.ok) {
+        const contentType = res.headers.get("content-type") || "image/jpeg";
+        const buffer = await res.arrayBuffer();
+        return new Response(buffer, {
+          status: 200,
+          headers: {
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=86400",
+          },
+        });
+      }
+    } catch {
+      // Try the next gateway
     }
-
-    const contentType = response.headers.get("content-type") || "image/jpeg";
-    const buffer = await response.arrayBuffer();
-
-    return new Response(buffer, {
-      status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=86400", // optional caching
-      },
-    });
-  } catch (err) {
-    return new Response("Error fetching image", { status: 500 });
   }
+
+  return new Response("Failed to fetch image from any gateway", {
+    status: 500,
+  });
 }

@@ -52,24 +52,27 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
   return (
     <div className="fixed inset-0 bg-black/70  flex items-center justify-center z-50 ">
       <div className="bg-[#151515] p-[36px] rounded-[20px] w-[893px] h-[635px]  border border-[#4d4d4d]">
-        <div className=" ">
-          {/* File Upload Section */}
-          {/* {store.uploadQueue.length == 0 && (
-            <div className="w-[367px] h-[563px] border border-[#4d4d4d] rounded-[10px] overflow-hidden flex-shrink-0">
-              <Image
-                src={URL.createObjectURL(
-                  store.uploadQueue[store.currentIndex].file
-                )}
-                alt="Preview"
-                width={367}
-                height={563}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )} */}
-          {/* File Upload Section */}
+        <div className="h-full">
           {store.uploadQueue.length == 0 && (
-            <div className="space-y-2">
+            <div className="flex flex-col items-center justify-center h-full  space-y-4 relative ">
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => store.setuploadImageModalStatus(false)}
+                className="absolute top-0 right-0 mt-2 mr-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+
               <label className="text-white text-sm text-[14px]">
                 Select Images
               </label>
@@ -78,10 +81,13 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                 onChange={handleChange}
                 multiple
                 accept="image/*"
-                className="text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 w-full"
+                className="text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 
+                 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+                 file:bg-gray-700 file:text-white hover:file:bg-gray-600"
               />
             </div>
           )}
+
           {/* Preview and Form Section */}
           {store.uploadQueue[store.currentIndex] && (
             <div className="flex gap-[36px]">
