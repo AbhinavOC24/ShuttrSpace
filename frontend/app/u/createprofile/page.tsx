@@ -11,7 +11,7 @@ import CreatorFeatures from "./_components/RightPanelComponents/page1/CreatorFea
 import HeroSection from "./_components/RightPanelComponents/page1/HeroSection";
 import SolanaCredits from "./_components/RightPanelComponents/page1/SolanaCredits";
 import ProfileForm from "./_components/RightPanelComponents/page2/ProfileForm";
-import back_tats from "@public/back_tats.png";
+
 import { useAuthStore } from "@/store/useAuthStore";
 
 const CreateProfilePage = () => {

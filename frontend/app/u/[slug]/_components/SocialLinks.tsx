@@ -1,10 +1,10 @@
 import { useProfileStore } from "@/store/useProfileStore";
 import Image from "next/image";
 import React from "react";
-import instagram from "@public/Instagram.svg";
-import linkedin from "@public/linkedin.svg";
-import x from "@public/x.svg";
-import email from "@public/google.svg";
+// import instagram from "@public/Instagram.svg";
+// import linkedin from "@public/linkedin.svg";
+// import x from "@public/x.svg";
+// import email from "@public/google.svg";
 function SocialLinks() {
   const store = useProfileStore();
 
@@ -23,7 +23,7 @@ function SocialLinks() {
             className="social-box twitter-box"
           >
             <Image
-              src={x}
+              src="/x.svg"
               alt="X (Twitter)"
               width={18}
               height={18}
@@ -38,7 +38,7 @@ function SocialLinks() {
             className="social-box email-box"
           >
             <Image
-              src={email}
+              src="/google.svg"
               alt="Email"
               width={18}
               height={18}
@@ -55,7 +55,7 @@ function SocialLinks() {
             className="social-box linkedin-box"
           >
             <Image
-              src={linkedin}
+              src="/linkedin.svg"
               alt="LinkedIn"
               width={18}
               height={18}
@@ -72,7 +72,7 @@ function SocialLinks() {
             className="social-box instagram-box"
           >
             <Image
-              src={instagram}
+              src="/Instagram.svg"
               alt="Instagram"
               width={24}
               height={24}

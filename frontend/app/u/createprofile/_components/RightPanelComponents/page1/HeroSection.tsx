@@ -2,7 +2,7 @@
 
 import DatePicker from "react-datepicker";
 import Image from "next/image";
-import back_tats from "@public/back_tats.png";
+
 import "react-datepicker/dist/react-datepicker.css";
 import { useAuthStore } from "@/store/useAuthStore";
 const HeroSection = () => {
@@ -11,13 +11,13 @@ const HeroSection = () => {
 
   return (
     <div className="w-full max-w-md   flex flex-col ">
-      <Image
+      {/* <Image
         src={back_tats}
         alt="Background design"
         height={200}
         width={200}
         className="absolute top-0 right-0 w-full h-full object-cover opacity-70 -z-10 "
-      />
+      /> */}
       {/* Heading */}
       <div className="text-[40px] font-family-helvetica font-medium leading-10 ">
         Complete Your <br />

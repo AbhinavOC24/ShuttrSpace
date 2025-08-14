@@ -1,10 +1,10 @@
-import loginImage2 from "@public/login_image.jpg";
-import Arrow from "@public/Arrow.svg";
+// import loginImage2 from "@public/login_image.jpg";
+// import Arrow from "@public/Arrow.svg";
 import Image from "next/image";
 const LeftPanel = () => (
   <div className="relative w-[490px] h-full rounded-5xl overflow-clip">
     <Image
-      src={loginImage2}
+      src="/login_image.jpg"
       alt="login image"
       width={490}
       height={610}
@@ -28,7 +28,7 @@ const LeftPanel = () => (
         <Image
           className="absolute w-[19px] h-[19px] top-8 left-[33px] hover:rotate-45 transition ease-in-out cursor-pointer"
           alt="Arrow"
-          src={Arrow}
+          src="/Arrow.svg"
         />
       </div>
     </div>

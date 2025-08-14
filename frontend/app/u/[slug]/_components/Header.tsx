@@ -2,7 +2,7 @@ import React from "react";
 import SocialLinks from "./SocialLinks";
 import { useProfileStore } from "@/store/useProfileStore";
 import Image from "next/image";
-import gear from "@public/Gear.svg";
+// import gear from "@public/Gear.svg";
 import { calculateAge } from "@/utils/dateUtils";
 type HeaderProps = {
   setSettingModalStatus: (status: boolean) => void;
@@ -38,7 +38,7 @@ function Header({ setSettingModalStatus }: HeaderProps) {
                   onClick={() => setSettingModalStatus(true)}
                   className="w-10 h-10 ml-2 cursor-pointer rounded-md bg-white/5 border-[0.5px] border-[#E0DEDE]/20 shadow-[inset_1px_1px_4px_0_rgba(255,244,244,0.25)] hover:shadow-[inset_2px_2px_4px_0_rgba(255,244,244,0.25),0_2px_2px_0_rgba(255,255,255,0.2)] transition-shadow duration-200 flex justify-center items-center"
                 >
-                  <Image src={gear} alt="gear" width={25} height={25} />
+                  <Image src="/gear.svg" alt="gear" width={25} height={25} />
                 </div>
               )}
             </div>
