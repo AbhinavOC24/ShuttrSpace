@@ -331,7 +331,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                     {store.currentIndex > 0 && (
                       <button
                         onClick={prevPhoto}
-                        className="bg-black border border-[#414141] rounded-[10px] w-full h-full text-white shadow-[0_-4px_4px_0_rgba(0,0,0,0.25)] shadow-[inset_4px_6px_4.2px_rgba(255,255,255,0.105)] transition-colors"
+                        className="bg-black border border-[#414141] rounded-[10px] w-full h-full text-white  shadow-[inset_4px_6px_4.2px_rgba(255,255,255,0.105)] transition-colors"
                       >
                         Previous
                       </button>
@@ -349,7 +349,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                       disabled={
                         store.uploading || store.uploadQueue.length === 0
                       }
-                      className="bg-black border w-full h-full cursor-pointer border-[#414141] rounded-[10px] text-white shadow-[0_-4px_4px_0_rgba(0,0,0,0.25)] shadow-[inset_4px_6px_4.2px_rgba(255,255,255,0.105)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-black border w-full h-full cursor-pointer border-[#414141] rounded-[10px] text-white  shadow-[inset_4px_6px_4.2px_rgba(255,255,255,0.105)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {store.uploading
                         ? "Uploading..."
