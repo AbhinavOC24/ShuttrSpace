@@ -1,10 +1,7 @@
 import { useProfileStore } from "@/store/useProfileStore";
 import Image from "next/image";
 import React from "react";
-// import instagram from "@public/Instagram.svg";
-// import linkedin from "@public/linkedin.svg";
-// import x from "@public/x.svg";
-// import email from "@public/google.svg";
+
 function SocialLinks() {
   const store = useProfileStore();
 

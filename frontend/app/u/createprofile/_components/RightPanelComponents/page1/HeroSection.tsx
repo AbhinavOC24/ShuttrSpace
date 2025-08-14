@@ -1,7 +1,6 @@
 "use client";
 
 import DatePicker from "react-datepicker";
-import Image from "next/image";
 
 import "react-datepicker/dist/react-datepicker.css";
 import { useAuthStore } from "@/store/useAuthStore";

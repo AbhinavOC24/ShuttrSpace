@@ -21,8 +21,6 @@ const CreateProfilePage = () => {
   const router = useRouter();
   const { formData, setFormData, resetFormData, profileFile } = useAuthStore();
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
 
   const { globalError, setGlobalError, clearGlobalError } = useErrorStore();

@@ -9,13 +9,6 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 
-// Import wallet adapters you want to support
-import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  // Add other wallet adapters as needed
-} from "@solana/wallet-adapter-wallets";
-
 // Default styles
 import "@solana/wallet-adapter-react-ui/styles.css";
 
