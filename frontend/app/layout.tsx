@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import WalletProviderWrapper from "./_provider/WalletWrapper"; // ✅ import
-
+//fix
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
