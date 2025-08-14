@@ -31,6 +31,8 @@ app.listen(process.env.BACKEND_PORT, () => {
   console.log(` Listening on Port ${process.env.BACKEND_PORT}`);
 });
 
+app.get("/healthz", (req, res) => res.sendStatus(200));
+
 app.use("/api/imagekit", imagekitRoutes);
 
 app.use("/u/photo", photoRoutes);
