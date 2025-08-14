@@ -8,12 +8,12 @@ import localFont from "next/font/local";
 const neueMontreal = localFont({
   src: [
     {
-      path: "../public/fonts/NeueuMontreal/NeueMontreal-Regular.otf",
+      path: "./fonts/NeueuMontreal/NeueMontreal-Regular.otf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../public/fonts/NeueuMontreal/NeueMontreal-Medium.otf",
+      path: "./fonts/NeueuMontreal/NeueMontreal-Medium.otf",
       weight: "500",
       style: "normal",
     },
@@ -25,12 +25,12 @@ const neueMontreal = localFont({
 const helveticaNeue = localFont({
   src: [
     {
-      path: "../public/fonts/HelveticaNeue/HelveticaNeue-Regular.ttf",
+      path: "./fonts/HelveticaNeue/HelveticaNeue-Regular.ttf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../public/fonts/HelveticaNeue/HelveticaNeue-Medium.ttf",
+      path: "./fonts/HelveticaNeue/HelveticaNeue-Medium.ttf",
       weight: "500",
       style: "normal",
     },
