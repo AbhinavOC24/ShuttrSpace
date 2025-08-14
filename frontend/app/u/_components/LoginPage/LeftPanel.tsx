@@ -29,6 +29,8 @@ const LeftPanel = () => (
           className="absolute w-[19px] h-[19px] top-8 left-[33px] hover:rotate-45 transition ease-in-out cursor-pointer"
           alt="Arrow"
           src="/Arrow.svg"
+          width={19}
+          height={19}
         />
       </div>
     </div>
