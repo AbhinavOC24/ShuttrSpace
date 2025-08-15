@@ -47,7 +47,7 @@ export const verifySign = async (req: Request, res: Response) => {
         .status(400)
         .json({ error: "Invalid public Key format", authenticated: false });
     }
-
+    console.log("console.log", { base58PublicKey, publicKey });
     if (base58PublicKey !== req.session.publicKey) {
       return res.status(401).json({
         error: "The public key used to sign and connect doesn't match",
