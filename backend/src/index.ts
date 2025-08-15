@@ -63,7 +63,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: isProd,
+      secure: true,
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
