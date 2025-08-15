@@ -9,21 +9,48 @@ import photoRoutes from "./routes/photo.routes";
 dotenv.config();
 
 const app = express();
-
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
 
+// app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+
+// app.use(
+//   session({
+//     secret: "super-secret-key",
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//       secure: process.env.NODE_ENV === "production",
+//       httpOnly: true,
+//       maxAge: 1000 * 60 * 60 * 24 * 7,
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Important for cross-origin
+//     }, // secure: true in prod (HTTPS)
+//   })
+// );
+
+const isProd = process.env.NODE_ENV === "production";
+
+// CORS
+app.use(
+  cors({
+    origin: isProd
+      ? process.env.FRONTEND_URL // e.g. "https://shuttrspace-frontend.onrender.com"
+      : "http://localhost:3000",
+    credentials: true,
+  })
+);
+
+// Session
 app.use(
   session({
-    secret: "super-secret-key",
+    secret: process.env.SESSION_SECRET || "super-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: isProd, // true only in prod (HTTPS)
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Important for cross-origin
-    }, // secure: true in prod (HTTPS)
+      sameSite: isProd ? "none" : "lax", // allow cross-site in prod
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    },
   })
 );
 
