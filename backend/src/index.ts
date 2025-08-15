@@ -6,6 +6,8 @@ import imagekitRoutes from "./routes/imagekit.routes";
 
 import authRoutes from "./routes/auth.routes";
 import photoRoutes from "./routes/photo.routes";
+import { RedisStore } from "connect-redis";
+import { createClient } from "redis";
 dotenv.config();
 
 const app = express();
@@ -29,26 +31,47 @@ app.use(express.json());
 
 const isProd = process.env.NODE_ENV === "production";
 
-// CORS
+let store;
+if (isProd) {
+  const redisClient = createClient({
+    url: process.env.REDIS_URL,
+    socket: {
+      tls: true, // Needed for Upstash `rediss://`
+      rejectUnauthorized: false, // Avoids self-signed cert issues
+    },
+  });
+
+  redisClient.on("error", (err) => console.error("Redis Client Error", err));
+
+  (async () => {
+    await redisClient.connect();
+  })();
+
+  store = new RedisStore({
+    client: redisClient,
+    prefix: "sess:", // optional namespace
+  });
+}
+
+// --- CORS ---
 app.use(
   cors({
-    origin: isProd
-      ? process.env.FRONTEND_URL // e.g. "https://shuttrspace-frontend.onrender.com"
-      : "http://localhost:3000",
+    origin: isProd ? process.env.FRONTEND_URL : "http://localhost:3000",
     credentials: true,
   })
 );
 
-// Session
+// --- SESSION ---
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "super-secret-key",
+    store: store || undefined, // MemoryStore in dev
+    secret: process.env.SESSION_SECRET || "dev-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: isProd, // true only in prod (HTTPS)
+      secure: isProd,
       httpOnly: true,
-      sameSite: isProd ? "none" : "lax", // allow cross-site in prod
+      sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     },
   })
