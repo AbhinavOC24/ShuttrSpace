@@ -15,25 +15,12 @@ app.use(express.json());
 
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
-// app.use(
-//   session({
-//     secret: "super-secret-key",
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: {
-//       secure: process.env.NODE_ENV === "production",
-//       httpOnly: true,
-//       maxAge: 1000 * 60 * 60 * 24 * 7,
-//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Important for cross-origin
-//     }, // secure: true in prod (HTTPS)
-//   })
-// );
-
 const isProd = process.env.NODE_ENV === "production";
 
 let store;
 if (isProd) {
   console.log("REDIS_URL from env:", process.env.REDIS_URL);
+  console.log("Frontend URL from env:", process.env.FRONTEND_URL);
 
   const redisClient = createClient({
     url: process.env.REDIS_URL,
@@ -50,12 +37,6 @@ if (isProd) {
 }
 console.log("origin", process.env.FRONTEND_URL);
 console.log("isProd", isProd);
-// app.use(
-//   cors({
-//     origin: isProd ? `${process.env.FRONTEND_URL}` : "http://localhost:3000",
-//     credentials: true,
-//   })
-// );
 
 app.use(
   session({
@@ -64,7 +45,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: isProd,
+      secure: false,
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
