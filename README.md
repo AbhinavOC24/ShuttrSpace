@@ -97,17 +97,25 @@ Create a `.env` file in both `frontend/` and `backend/`:
 
 ### Backend
 ```
-DATABASE_URL=postgresql://user:pass@host:5432/db
-FRONTEND_URL=http://localhost:3000
-BACKEND_PORT=5000
-IPFS_API_KEY=your_key_here
-SOLANA_RPC_URL=https://api.devnet.solana.com
+BACKEND_PORT=
+FRONTEND_URL=
+NODE_ENV=
+DATABASE_URL=
+IMAGEKIT_PUBLICKEY=
+IMAGEKIT_PRIVATEKEY=
+IMAGEKIT_URLENDPOINT=
 ```
 
 ### Frontend
 ```
-NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
-NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_BACKEND_URL=
+NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
+PINATA_API_Key=
+PINATA_API_SECRET=
+PINATA_JWT=
+NEXT_PUBLIC_PINATA_GATEWAY_URL=
+
+
 ```
 
 ---
