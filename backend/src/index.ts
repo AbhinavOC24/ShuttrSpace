@@ -35,10 +35,7 @@ let store;
 if (isProd) {
   const redisClient = createClient({
     url: process.env.REDIS_URL,
-    socket: {
-      tls: true, // Needed for Upstash `rediss://`
-      rejectUnauthorized: false, // Avoids self-signed cert issues
-    },
+    socket: { tls: true }, // Upstash uses TLS for rediss://
   });
 
   redisClient.on("error", (err) => console.error("Redis Client Error", err));
@@ -47,21 +44,16 @@ if (isProd) {
     await redisClient.connect();
   })();
 
-  store = new RedisStore({
-    client: redisClient,
-    prefix: "sess:", // optional namespace
-  });
+  store = new RedisStore({ client: redisClient });
 }
 
-// --- CORS ---
 app.use(
   cors({
-    origin: isProd ? process.env.FRONTEND_URL : "http://localhost:3000",
+    origin: isProd ? process.env.FRONTEND_URL : "http://localhost:5173",
     credentials: true,
   })
 );
 
-// --- SESSION ---
 app.use(
   session({
     store: store || undefined, // MemoryStore in dev
@@ -72,7 +64,7 @@ app.use(
       secure: isProd,
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
