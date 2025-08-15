@@ -93,10 +93,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkAuthAndFetchSlug: async () => {
     try {
       set({ loading: true });
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/getSlug`,
-        { withCredentials: true }
-      );
+      const res = await axios.get(`/api/u/auth/getSlug`, {
+        withCredentials: true,
+      });
       return {
         authenticated: true,
         hasProfile: res.data.hasProfile,
@@ -114,7 +113,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ loading: true, authError: null });
 
       const { data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/nonce`,
+        `/api/u/auth/nonce`,
         { publicKey },
         { withCredentials: true }
       );
@@ -124,7 +123,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const signature = bs58.encode(signed);
 
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/verifySign`,
+        `/api/u/auth/verifySign`,
         { publicKey, signature },
         { withCredentials: true }
       );

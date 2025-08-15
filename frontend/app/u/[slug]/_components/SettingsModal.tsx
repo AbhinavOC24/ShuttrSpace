@@ -56,9 +56,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   const uploadToImageKit = async (file: File): Promise<string> => {
     try {
-      const authResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
-      );
+      const authResponse = await axios.get(`/api/api/imagekit/auth`);
 
       const { signature, expire, token } = authResponse.data;
       const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
@@ -103,7 +101,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       }
 
       const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/updateProfile`,
+        `/api/u/auth/updateProfile`,
         {
           bio: formData.bio,
           location: formData.location,

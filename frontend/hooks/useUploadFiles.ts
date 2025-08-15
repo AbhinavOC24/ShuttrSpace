@@ -176,7 +176,7 @@ export const useUploadFiles = () => {
 
       // Save to database
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/uploadPhotos`,
+        `/api/u/photo/uploadPhotos`,
         { batchInfo },
         { withCredentials: true }
       );

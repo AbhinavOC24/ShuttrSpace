@@ -45,10 +45,9 @@ const CreateProfilePage = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/checkAuthStatus`,
-          { withCredentials: true }
-        );
+        const res = await axios.get(`/api/u/auth/checkAuthStatus`, {
+          withCredentials: true,
+        });
         if (!res.data.authenticated) {
           setGlobalError("You must be authenticated to create a profile.");
           router.push("/u");
@@ -68,9 +67,7 @@ const CreateProfilePage = () => {
 
   const uploadToImageKit = async (file: File): Promise<string> => {
     try {
-      const authResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imagekit/auth`
-      );
+      const authResponse = await axios.get(`/api/api/imagekit/auth`);
 
       const { signature, expire, token } = authResponse.data;
       const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
@@ -135,7 +132,7 @@ const CreateProfilePage = () => {
 
       // Now send form data to backend
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/auth/createProfile`,
+        `/api/u/auth/createProfile`,
         {
           ...formData,
           profilePic: imageUrl,
