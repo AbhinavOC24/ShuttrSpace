@@ -27,7 +27,8 @@ export const useProfile = () => {
           console.log(res.data.profile);
           store.setUserProfile(res.data.profile);
           const photoRes = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/u/photo/getPhotos/${slug}`,
+            { withCredentials: true }
           );
           store.setUploaderPubkey(photoRes.data.publicKey);
           console.log(photoRes.data.photos);

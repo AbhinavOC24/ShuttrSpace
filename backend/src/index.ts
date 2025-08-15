@@ -22,7 +22,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Important for cross-origin
+      sameSite: "lax", // Important for cross-origin
     }, // secure: true in prod (HTTPS)
   })
 );
