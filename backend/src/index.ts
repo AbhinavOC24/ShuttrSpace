@@ -33,6 +33,8 @@ const isProd = process.env.NODE_ENV === "production";
 
 let store;
 if (isProd) {
+  console.log("REDIS_URL from env:", process.env.REDIS_URL);
+
   const redisClient = createClient({
     url: process.env.REDIS_URL,
     socket: { tls: true }, // Upstash uses TLS for rediss://
