@@ -48,10 +48,11 @@ if (isProd) {
 
   store = new RedisStore({ client: redisClient });
 }
-
+console.log("origin", process.env.FRONTEND_URL);
+console.log("isProd", isProd);
 app.use(
   cors({
-    origin: isProd ? process.env.FRONTEND_URL : "http://localhost:5173",
+    origin: isProd ? `${process.env.FRONTEND_URL}` : "http://localhost:3000",
     credentials: true,
   })
 );
@@ -63,7 +64,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,
+      secure: isProd,
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,

@@ -28,6 +28,8 @@ export const getNonce = (req: Request, res: Response) => {
     req.session.hasProfile = false;
     req.session.slug = null;
 
+    console.log("Session from getNonce:", req.session);
+
     res.json({ nonce });
   } catch (e) {
     console.error("Error from getNonce:", e);
