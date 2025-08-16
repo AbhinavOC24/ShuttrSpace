@@ -49,6 +49,7 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
+      domain: isProd ? "shuttrspace-backend.onrender.com" : undefined, // Set domain for production
     },
   })
 );
