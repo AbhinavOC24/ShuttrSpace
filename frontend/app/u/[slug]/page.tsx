@@ -69,9 +69,13 @@ function ProfilePage() {
       {store.canEdit && (
         <button
           onClick={() => store.setuploadImageModalStatus(true)}
-          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700   bottom-10 right-0 sticky"
+          className="w-20 h-20 rounded-full overflow-hidden bottom-10 right-8 fixed cursor-pointer"
         >
-          Upload Photos
+          <div className="group relative w-20 h-20 bg-black rounded-full shadow-[inset_2px_2px_10px_#ffffff] flex justify-center items-center hover:bg-white hover:shadow-[inset_2px_2px_10px_#000000] transition-all duration-200">
+            <div className="absolute font-family-helvetica font-bold text-white text-[40px] tracking-[0] leading-normal whitespace-nowrap translate-y-[-3px] group-hover:text-black">
+              +
+            </div>
+          </div>
         </button>
       )}
       {store.imageDetailModalStatus && <ImageDetails />}
