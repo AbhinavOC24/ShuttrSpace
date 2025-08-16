@@ -47,12 +47,24 @@ app.use(
     cookie: {
       secure: isProd,
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      domain: isProd ? "shuttr-space.vercel.app" : undefined, // Set domain for production
     },
   })
 );
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log("🔍 Debug Info:");
+  console.log("Request URL:", req.url);
+  console.log("Origin:", req.headers.origin);
+  console.log("Cookie header:", req.headers.cookie);
+  console.log("Session exists:", !!req.session);
+  console.log("Session ID:", req.sessionID);
+  console.log("Session data:", req.session);
+  console.log("---");
+  next();
+});
 
 app.listen(process.env.BACKEND_PORT, () => {
   console.log(` Listening on Port ${process.env.BACKEND_PORT}`);
