@@ -17,15 +17,15 @@ const ConnectWalletButton = ({
   publicKey: string | null;
 }) => {
   const router = useRouter();
+  const { loginWithWallet, checkAuthAndFetchSlug } = useAuthStore();
 
   const getButtonText = () => {
     if (loading) return "Signing...";
     if (connected) return "Sign the message";
     return "Connect Wallet";
   };
-  if (!signMessage) return;
+  if (!signMessage) return null;
 
-  const { loginWithWallet, checkAuthAndFetchSlug } = useAuthStore();
   const login = async () => {
     const result = await loginWithWallet(publicKey as string, signMessage);
     if (result?.authenticated) {
