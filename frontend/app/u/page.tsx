@@ -58,12 +58,6 @@ const LoginPage = () => {
           router.push(hasProfile ? `/u/${slug}` : "/u/createprofile");
           return;
         }
-
-        const result = await loginWithWallet(publicKey.toBase58(), signMessage);
-        if (result?.authenticated) {
-          const { hasProfile, slug } = await checkAuthAndFetchSlug();
-          router.push(hasProfile ? `/u/${slug}` : "/u/createprofile");
-        }
       } catch (err: any) {
         console.error("Auth error:", err);
         setGlobalError(
@@ -101,6 +95,8 @@ const LoginPage = () => {
           onConnectWallet={() => setIsOpen(true)}
           connected={connected}
           loading={loading}
+          signMessage={signMessage}
+          publicKey={publicKey?.toBase58() || ""}
         />
 
         <ConnectWalletModal isOpen={isOpen} onClose={() => setIsOpen(false)}>

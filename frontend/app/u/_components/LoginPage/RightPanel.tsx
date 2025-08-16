@@ -1,3 +1,4 @@
+import { useWallet } from "@solana/wallet-adapter-react";
 import ConnectWalletButton from "./RightPanelComponents/ConnectWalletButton";
 import CreatorFeatures from "./RightPanelComponents/CreatorFeatures";
 import HeroSection from "./RightPanelComponents/HeroSection";
@@ -7,10 +8,14 @@ const RightPanel = ({
   onConnectWallet,
   connected,
   loading,
+  signMessage,
+  publicKey,
 }: {
   onConnectWallet: () => void;
   connected: boolean;
   loading: boolean;
+  signMessage?: (msg: Uint8Array) => Promise<Uint8Array>;
+  publicKey: string | null;
 }) => (
   <div className="w-[490px] relative rounded-5xl">
     <div className="relative flex flex-col gap-6 w-[389px] h-[393px] top-[60px] left-[50px]">
@@ -24,6 +29,8 @@ const RightPanel = ({
         onClick={onConnectWallet}
         connected={connected}
         loading={loading}
+        signMessage={signMessage}
+        publicKey={publicKey}
       />
     </div>
   </div>
