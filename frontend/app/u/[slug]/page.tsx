@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Image from "next/image";
 
@@ -11,16 +11,26 @@ import UploadImageModal from "./_components/UploadImageModal";
 
 import Header from "./_components/Header";
 import ImageDetails from "./_components/ImageDetails";
+import { useRouter } from "next/navigation";
 function ProfilePage() {
   const store = useProfileStore();
+  const router = useRouter();
 
   const [settingModalStatus, setSettingModalStatus] = useState(false);
   useProfile();
   const { slug } = useParams();
   const photosToShow = store.filteredGallery();
 
+  useEffect(() => {
+    if (store.notFound) {
+      router.push("/404"); // or any route you want
+    }
+  }, [store.notFound, router]);
+
   if (store.notFound) {
-    return <p>No profile exists for this user.</p>;
+    <div className="flex items-center justify-center min-h-screen">
+      No profile exists for this user
+    </div>;
   }
 
   if (!store.userProfile) {

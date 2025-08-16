@@ -27,7 +27,7 @@ const ConnectWalletButton = ({
               : "bg-black cursor-pointer hover:bg-white hover:text-black hover:border-white hover:shadow-[inset_2px_2px_4.3px_2px_rgba(0,0,0,0.5)]"
           }`}
     >
-      {getButtonText()}
+      Connect Wallet
     </button>
   );
 };
