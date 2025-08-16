@@ -7,6 +7,11 @@ import { PublicKey } from "@solana/web3.js";
 
 export const getNonce = (req: Request, res: Response) => {
   try {
+    console.log("🚀 getNonce called");
+    console.log("Request headers:", req.headers);
+    console.log("CORS origin:", req.headers.origin);
+    console.log("Session before:", req.session);
+    console.log("Session ID before:", req.sessionID);
     const { publicKey } = req.body;
     if (!publicKey)
       return res.status(400).json({ error: "Missing public Key" });
@@ -29,8 +34,14 @@ export const getNonce = (req: Request, res: Response) => {
     req.session.slug = null;
 
     console.log("Session from getNonce:", req.session);
+    console.log("Session after:", req.session);
+    console.log("Session ID after:", req.sessionID);
+    console.log("Response headers will be:", res.getHeaders());
 
     res.json({ nonce });
+    setTimeout(() => {
+      console.log("Final response headers:", res.getHeaders());
+    }, 100);
   } catch (e) {
     console.error("Error from getNonce:", e);
     res.status(500).json({ error: "Error from getNonce" });
