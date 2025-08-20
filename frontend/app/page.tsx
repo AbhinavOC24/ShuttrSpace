@@ -99,7 +99,7 @@ export default function InfiniteScrollGallery() {
         </div>
       ) : (
         <div className="py-6 text-center text-gray-500">
-          🎉 You've reached the end!
+          {"🎉 You've reached the end!"}
         </div>
       )}
     </div>
