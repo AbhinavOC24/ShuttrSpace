@@ -26,8 +26,8 @@ export const usePhotoGalleryStore = create<PhotoGalleryState>((set) => ({
   photos: [],
 
   setPhotos: (newBatch) =>
-    set((state) => ({
-      photos: [...state.photos, ...newBatch],
+    set(() => ({
+      photos: newBatch,
     })),
 
   resetPhotos: () =>
