@@ -106,3 +106,22 @@ export const getPhotos = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch photos" });
   }
 };
+
+export const getInfinitePhotos = async (req: Request, res: Response) => {
+  try {
+    const skip = parseInt(req.query.skip as string) || 0;
+    const take = parseInt(req.query.take as string) || 20;
+
+    const photos = await prismaClient.photo.findMany({
+      skip,
+      take,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    res.json(photos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Couldnt fetch photos" });
+  }
+};
