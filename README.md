@@ -9,6 +9,7 @@ Photographers can upload, manage, and share their work, with the option to store
 ## 🚀 Features
 
 - **Portfolio-grade profiles** – Showcase work in a clean, professional layout
+- **Infinite Scroll Inspiration Gallery** – Public feed where anyone can browse photos endlessly without login
 - **Wallet-based authentication** – Log in with a Solana wallet instead of email/password
 - **Decentralized storage** – Store high-resolution images on **IPFS** for censorship resistance and global accessibility
 - **On-chain publishing (optional)** – Push metadata CIDs to Solana for publicly verifiable authorship
