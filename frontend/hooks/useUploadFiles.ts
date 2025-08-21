@@ -173,7 +173,6 @@ export const useUploadFiles = () => {
         }
       }
 
-      // Save to database
       const response = await axios.post(
         `/api/u/photo/uploadPhotos`,
         { batchInfo },

@@ -6,7 +6,7 @@ import { useProfileStore } from "@/store/useProfileStore";
 const ImageDetails = () => {
   const store = useProfileStore();
   const photo = store.selectedImage;
-  console.log(photo?.imageUrl);
+
   if (!store.imageDetailModalStatus || !photo) return null;
   if (!store.userProfile) return <div>No user profile exists</div>;
 

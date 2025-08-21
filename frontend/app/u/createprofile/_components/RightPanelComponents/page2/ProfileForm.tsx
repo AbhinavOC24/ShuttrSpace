@@ -10,7 +10,7 @@ const ProfileForm = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    console.log(formData);
+
     setFormData({ [name]: value });
   };
 

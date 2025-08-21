@@ -5,7 +5,6 @@ import Image from "next/image";
 const RenderWallets = () => {
   const { select, wallets, connected, disconnect, wallet } = useWallet();
 
-  // Button style reused for consistency
   const buttonClass =
     "h-[50px] cursor-pointer w-[324px] flex items-center gap-2 pl-[18px] rounded-[20px] " +
     "font-family-neue font-medium text-sm bg-black border border-[#4d4d4d] " +

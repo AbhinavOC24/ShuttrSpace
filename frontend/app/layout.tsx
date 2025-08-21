@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import WalletProviderWrapper from "./_provider/WalletWrapper"; // ✅ import //fixed
+import WalletProviderWrapper from "./_provider/WalletWrapper";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
@@ -79,7 +79,6 @@ export default function RootLayout({
   );
 }
 
-// In your layout.tsx, add this component before the export
 function Navbar() {
   return (
     <nav className="bg-black shadow-lg border-b border-gray-800 sticky top-0 z-50 mb-4">
