@@ -25,7 +25,6 @@ router.get("/auth", (req: Request, res: Response) => {
     const result = imagekit.getAuthenticationParameters();
     console.log("Auth parameters generated:", result);
 
-    // Add CORS headers if not handled globally
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Content-Type");
 

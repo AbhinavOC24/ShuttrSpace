@@ -23,7 +23,7 @@ function ProfilePage() {
 
   useEffect(() => {
     if (store.notFound) {
-      router.push("/404"); // or any route you want
+      router.push("/404");
     }
   }, [store.notFound, router]);
 

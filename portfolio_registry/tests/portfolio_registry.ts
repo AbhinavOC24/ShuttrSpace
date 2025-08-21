@@ -6,11 +6,12 @@ describe("portfolio_registry", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.portfolioRegistry as Program<PortfolioRegistry>;
+  const program = anchor.workspace
+    .portfolioRegistry as Program<PortfolioRegistry>;
 
   it("Is initialized!", async () => {
     // Add your test here.
-    const tx = await program.methods.initialize().rpc();
+    const tx = await program.methods.initializePortfolio().rpc();
     console.log("Your transaction signature", tx);
   });
 });

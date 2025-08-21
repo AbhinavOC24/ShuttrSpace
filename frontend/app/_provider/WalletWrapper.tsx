@@ -1,6 +1,6 @@
 // components/WalletProviderWrapper.tsx
 "use client";
-import React, { FC, useMemo, useEffect, useState } from "react";
+import React, { FC, useMemo } from "react";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -9,7 +9,6 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 
-// Default styles
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 interface WalletProviderWrapperProps {
@@ -19,21 +18,11 @@ interface WalletProviderWrapperProps {
 const WalletProviderWrapper: FC<WalletProviderWrapperProps> = ({
   children,
 }) => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Devnet;
 
-  // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // Configure supported wallets
-  const wallets = useMemo(
-    () => [
-      // Add other wallet adapters here
-    ],
-    [network]
-  );
-
-  // Show loading state during hydration
+  const wallets = useMemo(() => [], [network]);
 
   return (
     <ConnectionProvider endpoint={endpoint}>

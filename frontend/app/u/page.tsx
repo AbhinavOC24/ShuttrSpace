@@ -4,7 +4,6 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
-// Store imports
 import { useAuthStore } from "@/store/useAuthStore";
 import { useErrorStore } from "@/store/useErrorStore";
 
@@ -28,13 +27,11 @@ const LoginPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [attemptedLogin, setAttemptedLogin] = useState(false);
 
-  // Initialize component
   useEffect(() => {
     setIsMounted(true);
     clearGlobalError();
   }, [clearGlobalError]);
 
-  // Handle authentication flow
   useEffect(() => {
     const runAuthFlow = async () => {
       if (

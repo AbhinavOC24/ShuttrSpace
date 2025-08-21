@@ -1,5 +1,3 @@
-// import loginImage2 from "@public/login_image.jpg";
-// import Arrow from "@public/Arrow.svg";
 import Image from "next/image";
 const LeftPanel = () => (
   <div className="relative w-[490px] h-full rounded-5xl overflow-clip">

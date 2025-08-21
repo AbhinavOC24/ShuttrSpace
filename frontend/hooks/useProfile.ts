@@ -24,13 +24,12 @@ export const useProfile = () => {
           store.setCanEdit(true);
         }
         if (res.data.profile) {
-          console.log(res.data.profile);
           store.setUserProfile(res.data.profile);
           const photoRes = await axios.get(`/api/u/photo/getPhotos/${slug}`, {
             withCredentials: true,
           });
           store.setUploaderPubkey(photoRes.data.publicKey);
-          console.log(photoRes.data.photos);
+
           store.setGallery(photoRes.data.photos);
         }
       } catch (err: any) {

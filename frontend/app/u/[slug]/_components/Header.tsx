@@ -2,7 +2,7 @@ import React from "react";
 import SocialLinks from "./SocialLinks";
 import { useProfileStore } from "@/store/useProfileStore";
 import Image from "next/image";
-// import gear from "@public/Gear.svg";
+
 import { calculateAge } from "@/utils/dateUtils";
 type HeaderProps = {
   setSettingModalStatus: (status: boolean) => void;

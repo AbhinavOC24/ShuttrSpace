@@ -23,7 +23,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     email: "",
   });
 
-  // Update form data when modal opens or user profile changes
   useEffect(() => {
     if (isOpen && store.userProfile) {
       setFormData({
@@ -118,7 +117,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       );
 
       if (res.data?.success) {
-        // Update the store with new data
         if (store.userProfile) {
           store.setUserProfile({
             ...store.userProfile,

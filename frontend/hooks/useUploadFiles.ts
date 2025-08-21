@@ -49,7 +49,6 @@ export const useUploadFiles = () => {
         })
       );
 
-      // Blockchain signing and metadata
       let batchInfo = {};
 
       if (signMessage && publicKey && program) {

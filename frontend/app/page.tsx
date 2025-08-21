@@ -42,7 +42,6 @@ export default function InfiniteScrollGallery() {
         return;
       }
 
-      // Use functional update to avoid dependency on photos
       setPhotos([...photos, ...newBatch]);
 
       setPage((prev) => prev + 1);
@@ -78,7 +77,7 @@ export default function InfiniteScrollGallery() {
       },
       {
         threshold: 0.1,
-        rootMargin: "100px", // Increased to trigger earlier
+        rootMargin: "100px",
       }
     );
 
@@ -87,9 +86,8 @@ export default function InfiniteScrollGallery() {
     return () => {
       observer.disconnect();
     };
-  }, [fetchMore, hasMore, loading]); // Added hasMore and loading as dependencies
+  }, [fetchMore, hasMore, loading]);
 
-  // Masonry breakpoint configuration
   const breakpointColumnsObj = {
     default: 4,
     1100: 3,

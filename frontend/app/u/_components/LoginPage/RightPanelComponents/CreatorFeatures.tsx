@@ -33,7 +33,6 @@ const FeatureTag = ({ content }: { content: string }) => (
   </div>
 );
 
-// Special feature tag component
 const SpecialFeatureTag = ({ content }: { content: string }) => (
   <span className="special-creator-border">
     <span className="font-family-neue font-medium text-black text-[12px] whitespace-nowrap">

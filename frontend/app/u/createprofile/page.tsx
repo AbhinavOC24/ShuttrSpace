@@ -25,7 +25,6 @@ const CreateProfilePage = () => {
 
   const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
 
-  // Navigation functions
   const nextPage = () => {
     setPage((prev) => prev + 1);
   };
@@ -97,7 +96,7 @@ const CreateProfilePage = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          timeout: 30000, // 30 second timeout
+          timeout: 30000,
         }
       );
 
@@ -130,7 +129,6 @@ const CreateProfilePage = () => {
       }
       setFormData({ profilePic: imageUrl });
 
-      // Now send form data to backend
       const res = await axios.post(
         `/api/u/auth/createProfile`,
         {

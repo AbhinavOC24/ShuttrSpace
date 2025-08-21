@@ -156,7 +156,6 @@ export const createProfile = async (req: Request, res: Response) => {
       });
       return;
     }
-    // console.log(userInfo.data);
 
     let {
       name,
@@ -189,8 +188,8 @@ export const createProfile = async (req: Request, res: Response) => {
       return;
     }
 
-    const sanitized = name.trim().toLowerCase().replace(/\s+/g, "_"); // replace spaces
-    const suffix = base58PublicKey.slice(0, 4); // or use bs58 hash if you prefer
+    const sanitized = name.trim().toLowerCase().replace(/\s+/g, "_");
+    const suffix = base58PublicKey.slice(0, 4);
     const slug = `${sanitized}_${suffix}`;
     await prismaClient.user.create({
       data: {
@@ -272,7 +271,6 @@ export const updateProfile = async (req: Request, res: Response) => {
     if (birthDate !== undefined) updateData.birthDate = birthDate;
     if (profilePic !== undefined) updateData.profilePic = profilePic;
 
-    // Handle social links
     if (socialLinks) {
       if (socialLinks.twitter !== undefined)
         updateData.twitter = socialLinks.twitter;

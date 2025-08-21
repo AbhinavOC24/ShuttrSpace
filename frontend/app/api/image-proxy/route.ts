@@ -42,9 +42,7 @@ export async function GET(req: NextRequest) {
           },
         });
       }
-    } catch {
-      // Try the next gateway
-    }
+    } catch {}
   }
 
   return new Response("Failed to fetch image from any gateway", {

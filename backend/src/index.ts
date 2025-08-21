@@ -25,7 +25,7 @@ if (isProd) {
 
   const redisClient = createClient({
     url: process.env.REDIS_URL,
-    socket: { tls: true }, // Upstash uses TLS for rediss://
+    socket: { tls: true },
   });
 
   redisClient.on("error", (err) => console.error("Redis Client Error", err));
@@ -41,7 +41,7 @@ console.log("isProd", isProd);
 
 app.use(
   session({
-    store: store || undefined, // MemoryStore in dev
+    store: store || undefined,
     secret: process.env.SESSION_SECRET || "dev-secret",
     resave: false,
     saveUninitialized: false,
