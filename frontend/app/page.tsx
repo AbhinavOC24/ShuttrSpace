@@ -4,12 +4,16 @@ import { usePhotoGalleryStore } from "@/store/usePhotoGalleryStore";
 import axios from "axios";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
+import { useScroll, useSpring, useTransform } from "framer-motion";
+import SmoothScroll from "@/utils/SmoothScroll";
 
 export default function InfiniteScrollGallery() {
   const { photos, setPhotos, resetPhotos } = usePhotoGalleryStore();
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, { mass: 0.1 });
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
@@ -56,6 +60,7 @@ export default function InfiniteScrollGallery() {
     resetPhotos();
     setPage(0);
     setHasMore(true);
+    fetchMore();
   }, [resetPhotos]);
 
   useEffect(() => {

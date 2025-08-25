@@ -56,7 +56,7 @@ function ProfilePage() {
               height={100}
               unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="w-full object-contain"
+              className="w-full object-contain mb-4"
               onClick={() => {
                 store.setSelectedImage(photo);
                 store.setImageDetailModalStatus(true);
