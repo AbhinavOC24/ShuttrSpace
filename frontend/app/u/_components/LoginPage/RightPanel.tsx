@@ -1,4 +1,5 @@
-import { useWallet } from "@solana/wallet-adapter-react";
+"use client";
+
 import ConnectWalletButton from "./RightPanelComponents/ConnectWalletButton";
 import CreatorFeatures from "./RightPanelComponents/CreatorFeatures";
 import HeroSection from "./RightPanelComponents/HeroSection";
@@ -27,9 +28,9 @@ const RightPanel = ({
       <SolanaCredits />
       <ConnectWalletButton
         onClick={onConnectWallet}
+        signMessage={signMessage}
         connected={connected}
         loading={loading}
-        signMessage={signMessage}
         publicKey={publicKey}
       />
     </div>

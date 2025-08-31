@@ -19,6 +19,7 @@ const RenderWallets = dynamic(
 const LoginPage = () => {
   const router = useRouter();
   const { publicKey, connected, signMessage } = useWallet();
+
   const { loginWithWallet, checkAuthAndFetchSlug, loading, setLoading } =
     useAuthStore();
   const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
@@ -31,7 +32,13 @@ const LoginPage = () => {
     setIsMounted(true);
     clearGlobalError();
   }, [clearGlobalError]);
-
+  useEffect(() => {
+    console.log("Wallet state:", {
+      connected,
+      publicKey: publicKey?.toBase58(),
+      signMessage: !!signMessage,
+    });
+  }, [connected, publicKey, signMessage]);
   useEffect(() => {
     const runAuthFlow = async () => {
       if (

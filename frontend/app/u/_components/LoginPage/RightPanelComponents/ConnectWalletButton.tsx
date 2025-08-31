@@ -1,3 +1,4 @@
+"use client";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -24,8 +25,10 @@ const ConnectWalletButton = ({
     if (connected) return "Sign the message";
     return "Connect Wallet";
   };
-  if (!signMessage) return null;
-
+  if (!signMessage) {
+    console.log("No sign Message");
+    return;
+  }
   const login = async () => {
     const result = await loginWithWallet(publicKey as string, signMessage);
     if (result?.authenticated) {
