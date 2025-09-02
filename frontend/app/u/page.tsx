@@ -93,7 +93,7 @@ const LoginPage = () => {
         </div>
       )}
 
-      <div className="w-[974px] h-[610px] flex bg-[#151515] rounded-5xl">
+      <div className="w-[974px] h-[610px] overflow-hidden flex bg-[#151515] rounded-5xl">
         <LeftPanel />
         <RightPanel
           onConnectWallet={() => setIsOpen(true)}

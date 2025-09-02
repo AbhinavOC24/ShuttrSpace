@@ -15,7 +15,7 @@ function NameSocialBar({ setSettingModalStatus }: NameSocialBarInput) {
     <div className="flex flex-col gap-1 mt-4 sm:mt-0   ">
       <div className="flex-col sm:flex sm:flex-row sm:justify-center sm:items-start   sm:gap-2.5  w-full">
         <div className="flex gap-2.5 justify-center sm:justify-start items-center    w-full">
-          <div className="font-family-helvetica  text-2xl font-medium sm:font-normal sm:text-3xl w-fit">
+          <div className="font-family-helvetica  text-xl font-medium sm:font-normal sm:text-3xl w-fit">
             {store.userProfile.name}
           </div>
 

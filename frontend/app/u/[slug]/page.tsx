@@ -42,7 +42,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className=" h-screen   flex flex-col items-center px-24  bg-black text-white">
+    <div className=" h-screen   flex flex-col items-center px-4 sm:px-24  bg-black text-white">
       <div className="bg-black  h-full rounded-lg shadow-lg w-full    flex flex-col gap-[60px]">
         <Header setSettingModalStatus={setSettingModalStatus} />
 
