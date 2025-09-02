@@ -42,11 +42,11 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-[90px] pt-[40px] bg-black text-white">
-      <div className="bg-black rounded-lg shadow-lg w-full h-[1000px] flex flex-col gap-[60px]">
+    <div className=" h-screen   flex flex-col items-center px-24  bg-black text-white">
+      <div className="bg-black  h-full rounded-lg shadow-lg w-full    flex flex-col gap-[60px]">
         <Header setSettingModalStatus={setSettingModalStatus} />
 
-        <div className="h-fit w-full p-[32px] bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999] columns-[320px]">
+        <div className="h-fit w-full p-4 sm:p-8 bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999] sm:columns-[320px]">
           {photosToShow.map((photo, index) => (
             <Image
               key={index}

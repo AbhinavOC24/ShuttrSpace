@@ -7,11 +7,11 @@ function SocialLinks() {
 
   if (!store.userProfile) return <div>Cant find the profile</div>;
   return (
-    <div className="absolute right-0 top-0 flex flex-col gap-[4px]">
-      <div className="text-[18px] font-family-helvetica font-medium font-white">
+    <div className=" flex flex-col gap-1">
+      {/* <div className="text-[18px] font-family-helvetica font-medium font-white">
         Socials
-      </div>
-      <div className="flex gap-[8px]">
+      </div> */}
+      <div className="flex  justify-center sm:justify-start gap-2 ">
         {store.userProfile.twitter && (
           <a
             href={store.userProfile.twitter}
@@ -22,8 +22,8 @@ function SocialLinks() {
             <Image
               src="/x.svg"
               alt="X (Twitter)"
-              width={18}
-              height={18}
+              width={25}
+              height={25}
               className="social-icon twitter-glow"
             />
           </a>
@@ -37,8 +37,8 @@ function SocialLinks() {
             <Image
               src="/google.svg"
               alt="Email"
-              width={18}
-              height={18}
+              width={25}
+              height={25}
               className="social-icon email-glow"
             />
           </a>
@@ -54,8 +54,8 @@ function SocialLinks() {
             <Image
               src="/linkedin.svg"
               alt="LinkedIn"
-              width={18}
-              height={18}
+              width={25}
+              height={25}
               className="social-icon linkedin-glow"
             />
           </a>
@@ -71,8 +71,8 @@ function SocialLinks() {
             <Image
               src="/Instagram.svg"
               alt="Instagram"
-              width={24}
-              height={24}
+              width={35}
+              height={35}
               className="social-icon instagram-glow"
             />
           </a>

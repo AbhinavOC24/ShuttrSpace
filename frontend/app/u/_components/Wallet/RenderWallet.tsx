@@ -13,7 +13,7 @@ const RenderWallets = () => {
     "hover:shadow-[inset_2px_2px_4.3px_2px_rgba(0,0,0,0.5)] transition ease-in-out";
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col items-center gap-2.5">
       {connected && wallet ? (
         <button onClick={disconnect} className={buttonClass}>
           <Image
@@ -44,7 +44,9 @@ const RenderWallets = () => {
             </button>
           ))
       ) : (
-        <div>No wallet found. Please download a supported Solana wallet</div>
+        <div className="text-center w-10/12 ">
+          No wallet found. Please download a supported Solana wallet
+        </div>
       )}
     </div>
   );
