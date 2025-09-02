@@ -25,12 +25,9 @@ const ConnectWalletButton = ({
     if (connected) return "Sign the message";
     return "Connect Wallet";
   };
-  if (!signMessage) {
-    console.log("No sign Message");
-    return;
-  }
+
   const login = async () => {
-    const result = await loginWithWallet(publicKey as string, signMessage);
+    const result = await loginWithWallet(publicKey as string, signMessage!);
     if (result?.authenticated) {
       const { hasProfile, slug } = await checkAuthAndFetchSlug();
       router.push(hasProfile ? `/u/${slug}` : "/u/createprofile");
