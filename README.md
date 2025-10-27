@@ -1,4 +1,4 @@
-# 📸 ShuttrSpace
+#  ShuttrSpace
 
 **ShuttrSpace** is a full-stack photography platform that blends professional portfolio features with **Web3-powered content ownership**.  
 
@@ -6,7 +6,7 @@ Photographers can upload, manage, and share their work, with the option to store
 
 ---
 
-## 🚀 Features
+##  Features
 
 - **Portfolio-grade profiles** – Showcase work in a clean, professional layout
 - **Infinite Scroll Inspiration Gallery** – Public feed where anyone can browse photos endlessly without login
@@ -19,7 +19,7 @@ Photographers can upload, manage, and share their work, with the option to store
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 ### **Frontend**
 - [Next.js](https://nextjs.org/) + Tailwind CSS
@@ -69,7 +69,7 @@ Photographers can upload, manage, and share their work, with the option to store
 
 ---
 
-## 📦 Installation
+##  Installation
 
 ```
 # Clone the repo
@@ -92,7 +92,7 @@ npm run dev
 
 ---
 
-## ⚙️ Environment Variables
+##  Environment Variables
 
 Create a `.env` file in both `frontend/` and `backend/`:
 
@@ -121,22 +121,23 @@ NEXT_PUBLIC_PINATA_GATEWAY_URL=
 
 ---
 
-## 📌 Roadmap
+##  Roadmap
 
 - [ ] Infinite scroll galleries
 - [ ] Bounty / challenge system with on-chain reward payouts
 - [ ] Tipping system using Solana Pay
 - [ ] Full on-chain profile and gallery management
+- [ ] Switch to Arweave for storage layer
 
 ---
 
-## 📜 License
+## License
 
 MIT License – feel free to use and adapt.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -146,7 +147,7 @@ MIT License – feel free to use and adapt.
 
 ---
 
-## 📞 Support
+##  Support
 
 If you have any questions or need help, please open an issue or reach out to the maintainers.
 
