@@ -181,7 +181,7 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
 
     // Valid: Rotate the token
     await pool.query("UPDATE refresh_tokens SET is_revoked = true WHERE id = $1", [tokenData.id]);
-    
+
     // Get user details
     const userResult = await pool.query("SELECT email, slug FROM users WHERE id = $1", [tokenData.user_id]);
     const user = userResult.rows[0];
@@ -204,17 +204,17 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/u/auth/logout", async (req: Request, res: Response) => {
+app.post("/logout", async (req: Request, res: Response) => {
   try {
     const rawToken = req.cookies.refresh_token;
     if (rawToken) {
-       const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-       await pool.query("DELETE FROM refresh_tokens WHERE hashed_token = $1", [hashedToken]);
+      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+      await pool.query("DELETE FROM refresh_tokens WHERE hashed_token = $1", [hashedToken]);
     }
   } catch (error) {
     console.error(error);
   }
-  
+
   res.clearCookie("refresh_token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -223,7 +223,7 @@ app.post("/u/auth/logout", async (req: Request, res: Response) => {
   res.json({ message: "Logout successful" });
 });
 
-app.get("/u/auth/getProfile/:slug", async (req: Request, res: Response) => {
+app.get("/u/getProfile/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const result = await pool.query(
@@ -239,22 +239,22 @@ app.get("/u/auth/getProfile/:slug", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/u/auth/getSlug", authenticateToken, async (req: AuthRequest, res: Response) => {
+app.get("/u/getSlug", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const result = await pool.query("SELECT bio, slug FROM users WHERE id = $1", [req.user?.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
-    
-    res.json({ 
-      authenticated: true, 
-      hasProfile: !!result.rows[0]?.bio, 
-      slug: result.rows[0].slug 
+
+    res.json({
+      authenticated: true,
+      hasProfile: !!result.rows[0]?.bio,
+      slug: result.rows[0].slug
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch session status" });
   }
 });
 
-app.post("/u/auth/createProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
+app.post("/u/createProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
   try {
     // If tags were sent as a JSON string (typical for FormData), parse them
     if (typeof req.body.tags === 'string') {
@@ -293,7 +293,7 @@ app.post("/u/auth/createProfile", authenticateToken, upload.single("profilePic")
   }
 });
 
-app.put("/u/auth/updateProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
+app.put("/u/updateProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
   try {
     const { bio, location, birthDate, socialLinks } = req.body;
     let { profilePic } = req.body;

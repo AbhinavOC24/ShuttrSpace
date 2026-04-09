@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   checkAuth: () => {
     console.log("DEBUG: Starting checkAuth...");
-    return api.get(`/u/auth/getSlug`)
+    return api.get(`/u/getSlug`)
       .then(res => {
          console.log("DEBUG: checkAuth success!", res.data);
          set({ isAuthenticated: true, hasProfile: res.data.hasProfile, userSlug: res.data.slug });

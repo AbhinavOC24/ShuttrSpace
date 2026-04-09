@@ -78,7 +78,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       }
 
       const res = await api.put(
-        `/u/auth/updateProfile`,
+        `/u/updateProfile`,
         submissionData,
         {
           headers: {

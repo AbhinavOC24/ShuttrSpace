@@ -16,7 +16,7 @@ export const useProfile = () => {
       // Step 1: Always resolve auth first — get the current user's slug
       let resolvedUserSlug: string | null = null;
       try {
-        const authRes = await api.get("/u/auth/getSlug");
+        const authRes = await api.get("/u/getSlug");
         resolvedUserSlug = authRes.data.slug ?? null;
         // Sync the store so the rest of the app knows too
         useAuthStore.setState({
@@ -31,7 +31,7 @@ export const useProfile = () => {
 
       // Step 2: Fetch the profile
       try {
-        const res = await api.get(`/u/auth/getProfile/${slug}`);
+        const res = await api.get(`/u/getProfile/${slug}`);
         if (res.data.profile) {
           store.setUserProfile(res.data.profile);
 
