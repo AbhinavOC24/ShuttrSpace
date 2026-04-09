@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { usePhotoGalleryStore } from "@/store/usePhotoGalleryStore";
-import axios from "axios";
+import api from "@/lib/api";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 
@@ -20,25 +20,15 @@ export default function InfiniteScrollGallery() {
       setLoading(true);
       console.log(`Fetching page ${page}...`);
 
-      const res = await axios.get(
-        `/api/u/photo/getInfinitePhotos?skip=${page * 20}&take=20`
+      const res = await api.get(
+        `/u/photo/getInfinitePhotos?skip=${page * 20}&take=20`
       );
 
       const newBatch = res.data;
       console.log(`Received ${newBatch.length} photos`);
 
       if (newBatch.length === 0) {
-        const dummy = Array.from({ length: 20 }).map((_, i) => ({
-          id: page * 20 + i,
-          title: `Dummy ${i}`,
-          thumbnailUrl: `https://picsum.photos/seed/${page * 20 + i}/400/300`,
-          imageUrl: `https://picsum.photos/seed/${page * 20 + i}/800/600`,
-          tags: [],
-          createdAt: new Date().toISOString(),
-        }));
-
-        setPhotos([...photos, ...dummy]);
-        setPage((prev) => prev + 1);
+        setHasMore(false);
         return;
       }
 

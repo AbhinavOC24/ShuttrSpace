@@ -11,18 +11,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "gateway.pinata.cloud",
-        pathname: "/ipfs/**",
+        hostname: "ik.imagekit.io",
       },
     ],
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${backendUrl}/:path*`,
-      },
-    ];
   },
 };
 

@@ -1,156 +1,137 @@
-#  ShuttrSpace
+# ShuttrSpace
 
-**ShuttrSpace** is a full-stack photography platform that blends professional portfolio features with **Web3-powered content ownership**.  
+**ShuttrSpace** is a full-stack, portfolio-grade photography platform. Photographers can easily upload, manage, and share their work, while general users can explore an infinite-scroll gallery of high-resolution images. 
 
-Photographers can upload, manage, and share their work, with the option to store media on decentralized storage (IPFS) and publish metadata to the Solana blockchain for **verifiable, tamper-proof ownership records**.
-
----
-
-##  Features
-
-- **Portfolio-grade profiles** – Showcase work in a clean, professional layout
-- **Infinite Scroll Inspiration Gallery** – Public feed where anyone can browse photos endlessly without login
-- **Wallet-based authentication** – Log in with a Solana wallet instead of email/password
-- **Decentralized storage** – Store high-resolution images on **IPFS** for censorship resistance and global accessibility
-- **On-chain publishing (optional)** – Push metadata CIDs to Solana for publicly verifiable authorship
-- **Metadata signing** – Cryptographically sign image metadata with the uploader's private key to ensure authenticity
-- **Image optimization** – Automatic thumbnail generation for faster gallery load times
-- **Secure APIs** – Handle uploads, metadata, and profile data safely with access control
+This project was recently transitioned to a robust, highly optimized Web2 architecture to prioritize speed, simplicity, and ease of deployment.
 
 ---
 
-##  Tech Stack
+## High-Level Design (HLD) & Architecture
+
+ShuttrSpace is built on a clean client-server architecture utilizing **Next.js** for the frontend and **Node.js/Express** for the backend, backed by **PostgreSQL** and **ImageKit**.
+
+### System Diagram & Flow
+
+1. **Client (Next.js)** 
+   - Provides a dynamic, SSR/CSR-hybrid frontend designed with TailwindCSS.
+   - Maintains global state using `Zustand`.
+   - Utilizes a centralized `Axios` instance (`frontend/lib/axios.ts`) that automatically handles authentication headers and token refreshes via interceptors.
+
+2. **API & Server (Node.js/Express)**
+   - Operates as a stateless backend out of a consolidated `index.ts` handler to ensure monolithic simplicity.
+   - Handles all business logic, direct database requests, and photo proxy uploads.
+
+3. **Database (PostgreSQL)**
+   - No ORMs (like Prisma/TypeORM) are used. The platform queries Postgres using native raw SQL via the `pg` pool library for maximum performance and precise schema control.
+   - **Auto-Migrations**: Upon execution (`npm run dev`), the backend automatically validates and configures the database schema against `backend/schema.sql`.
+
+4. **Storage (ImageKit)**
+   - The frontend never directly exposes API keys to cloud storage providers. 
+   - Images are uploaded as `multipart/form-data` to the backend using `multer` in-memory. The backend securely pushes the buffer to **ImageKit**, retrieving optimized URLs to securely store in the database.
+
+---
+
+### Authentication Architecture (JWT & Secure Cookies)
+
+ShuttrSpace utilizes an industry-standard, deeply secure double-token system:
+
+1. **Authentication Flow**:
+    - Users sign up or log in with Email and Password using `bcrypt` hashing.
+    - On success, the backend generates two JSON Web Tokens:
+        - **Access Token** (15-minute expiry).
+        - **Refresh Token** (7-day expiry).
+    - The **Refresh Token** is delivered securely to the browser via an **HTTP-Only, Secure Cookie** (preventing XSS attacks).
+    - The short-lived **Access Token** is returned payload data to be held in the browser's memory/localStorage and attached to Axios `Authorization: Bearer <token>` headers.
+
+2. **The Interceptor (Silent Refresh)**:
+    - If an Access Token expires, API calls return `401 Unauthorized`.
+    - The custom frontend Axios Interceptor detects this and *pauses* the request.
+    - It silently pings the backend `/u/auth/refresh` endpoint, validating the HTTP-Only cookie.
+    - The backend returns a new Access Token, which the Interceptor dynamically caches before *resuming* the paused request. The user experiences zero interruption.
+
+---
+
+## Tech Stack Overview
 
 ### **Frontend**
-- [Next.js](https://nextjs.org/) + Tailwind CSS
-- [Solana Wallet Adapter](https://github.com/solana-labs/wallet-adapter)
-- Client-side thumbnail generation via `<canvas>` or `sharp` (backend fallback)
+- **Framework**: [Next.js (App Router)](https://nextjs.org/)
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **Networking**: Axios
 
 ### **Backend**
-- Node.js + Express
-- Prisma ORM + PostgreSQL
-- CORS + secure session handling
-- IPFS integration via [Web3.Storage](https://web3.storage/) or [Pinata](https://pinata.cloud/)
-
-### **Web3 Components**
-- **Blockchain**: Solana
-- **Smart Contract Framework**: Anchor
-- **Account Structure**:
-  ```
-  #[account]
-  pub struct UserPortfolio {
-      pub owner: Pubkey,
-      pub items: Vec<String>, // metadata CIDs
-  }
-  ```
-
-### **On-chain Instructions**
-- `initializePortfolio()` → creates a PDA (Program Derived Address) portfolio account for the user
-- `addPortfolioItem(metadata_cid)` → appends a new IPFS CID to the user's on-chain portfolio
-
-### **Decentralized Storage**
-- **Full-resolution image** → stored on IPFS
-- **Thumbnail** → stored on IPFS for fast retrieval
-- **Metadata JSON** → stored on IPFS containing:
-  ```
-  {
-    "name": "Stormy Skies",
-    "tags": ["landscape", "monsoon"],
-    "author": "WalletAddress",
-    "image": "ipfs://originalCID",
-    "thumbnail": "ipfs://thumbnailCID",
-    "signature": "signedHash"
-  }
-  ```
-
-### **Verification**
-- Metadata signature is validated using TweetNaCl to confirm that the uploader's wallet private key signed the file hash
-- If verified, the profile displays a "Verified Author" badge
+- **Runtime**: Node.js + Express
+- **Database Wrapper**: `pg` (Raw PostgreSQL Queries)
+- **Authentication**: JWT + Cookie Parser + Bcrypt
+- **File Handling**: Multer + ImageKit SDK
 
 ---
 
-##  Installation
+## Installation & Setup
 
-```
-# Clone the repo
+```bash
+# 1. Clone the repo
 git clone https://github.com/yourusername/shuttrspace.git
 cd shuttrspace
 
-# Install dependencies
-npm install
+# 2. Install dependencies for both modules
+cd backend && npm install
+cd ../frontend && npm install
+```
 
-# Create .env file (see .env.example for format)
+### Environment Variables
 
-# Run backend
-cd backend
+You need to create a `.env` file in **both** the `frontend/` and `backend/` directories.
+
+**Backend (`backend/.env`)**
+```env
+# Server
+BACKEND_PORT=8000
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+
+# Database 
+# Create an empty Postgres database named 'shuttrspace' prior to this
+DATABASE_URL=postgres://username:password@localhost:5432/shuttrspace
+
+# Auth Configuration
+JWT_SECRET=your_super_secret_access_key
+REFRESH_TOKEN_SECRET=your_super_secret_refresh_key
+
+# ImageKit Storage
+IMAGEKIT_PUBLICKEY=your_public_key
+IMAGEKIT_PRIVATEKEY=your_private_key
+IMAGEKIT_URLENDPOINT=https://ik.imagekit.io/your_id
+```
+
+**Frontend (`frontend/.env.local`)**
+```env
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+```
+
+### Running the Application
+
+ShuttrSpace auto-migrates its Postgres database upon startup. Once your `.env` variables are in place:
+
+```bash
+# Run backend (From /backend)
 npm run dev
 
-# Run frontend
-cd frontend
+# Optional: Seed the database with 100 dummy photos to test pagination
+npm run seed
+
+# Run frontend (From /frontend)
 npm run dev
 ```
-
----
-
-##  Environment Variables
-
-Create a `.env` file in both `frontend/` and `backend/`:
-
-### Backend
-```
-BACKEND_PORT=
-FRONTEND_URL=
-NODE_ENV=
-DATABASE_URL=
-IMAGEKIT_PUBLICKEY=
-IMAGEKIT_PRIVATEKEY=
-IMAGEKIT_URLENDPOINT=
-```
-
-### Frontend
-```
-NEXT_PUBLIC_BACKEND_URL=
-NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
-PINATA_API_Key=
-PINATA_API_SECRET=
-PINATA_JWT=
-NEXT_PUBLIC_PINATA_GATEWAY_URL=
-
-
-```
-
----
-
-##  Roadmap
-
-- [ ] Infinite scroll galleries
-- [ ] Bounty / challenge system with on-chain reward payouts
-- [ ] Tipping system using Solana Pay
-- [ ] Full on-chain profile and gallery management
-- [ ] Switch to Arweave for storage layer
 
 ---
 
 ## License
-
 MIT License – feel free to use and adapt.
 
----
-
 ## Contributing
-
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
----
-
-##  Support
-
-If you have any questions or need help, please open an issue or reach out to the maintainers.
-
----
-
-**Built with ❤️ for the decentralized photography community**

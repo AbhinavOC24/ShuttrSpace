@@ -1,10 +1,9 @@
 import { create } from "zustand";
-import axios from "axios";
-import bs58 from "bs58";
+import api, { setAuthHeader } from "@/lib/api";
 
 type FormDataType = {
-  publicKey: string;
   name: string;
+  email: string;
   bio: string;
   profilePic: string;
   tags: string[];
@@ -13,11 +12,11 @@ type FormDataType = {
   twitter: string;
   instagram: string;
   linkedin: string;
-  email: string;
 };
 
 type AuthState = {
   formData: FormDataType;
+  token: string | null;
   setFormData: (data: Partial<FormDataType>) => void;
   profileFile: File | null;
   toggleTag: (tag: string) => void;
@@ -27,24 +26,22 @@ type AuthState = {
   setAuthError: (msg: string | null) => void;
   setLoading: (val: boolean) => void;
   setProfileFile: (input: File | null) => void;
-  checkAuthAndFetchSlug: () => Promise<{
-    authenticated: boolean;
-    hasProfile: boolean;
-    slug: string | null;
-  }>;
-  loginWithWallet: (
-    publicKey: string,
-    signMessage: (msg: Uint8Array) => Promise<Uint8Array>
-  ) => Promise<{
-    authenticated: boolean;
-  } | null>;
+  isAuthenticated: boolean;
+  hasProfile: boolean;
+  userSlug: string | null;
+  checkAuth: () => Promise<boolean>;
+  login: (credentials: { email: string; password: string }) => Promise<boolean>;
+  signup: (credentials: { email: string; password: string; name: string }) => Promise<boolean>;
+  logout: () => void;
 };
+
 export const useAuthStore = create<AuthState>((set) => ({
   setProfileFile: (input) => set({ profileFile: input }),
   profileFile: null,
+  token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
   formData: {
-    publicKey: "",
     name: "",
+    email: "",
     bio: "",
     profilePic: "",
     tags: [] as string[],
@@ -53,7 +50,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     twitter: "",
     instagram: "",
     linkedin: "",
-    email: "",
   },
   setFormData: (data) =>
     set((state) => ({
@@ -71,8 +67,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   resetFormData: () =>
     set({
       formData: {
-        publicKey: "",
         name: "",
+        email: "",
         bio: "",
         profilePic: "",
         birthDate: "",
@@ -81,65 +77,100 @@ export const useAuthStore = create<AuthState>((set) => ({
         twitter: "",
         instagram: "",
         linkedin: "",
-        email: "",
       },
     }),
   loading: false,
   authError: null,
+  isAuthenticated: false,
+  hasProfile: false,
+  userSlug: null,
 
   setAuthError: (msg) => set({ authError: msg }),
   setLoading: (val) => set({ loading: val }),
 
-  checkAuthAndFetchSlug: async () => {
-    try {
-      set({ loading: true });
-      const res = await axios.get(`/api/u/auth/getSlug`, {
-        withCredentials: true,
+  checkAuth: () => {
+    console.log("DEBUG: Starting checkAuth...");
+    return api.get(`/u/auth/getSlug`)
+      .then(res => {
+         console.log("DEBUG: checkAuth success!", res.data);
+         set({ isAuthenticated: true, hasProfile: res.data.hasProfile, userSlug: res.data.slug });
+         return true;
+      })
+      .catch((err) => {
+         console.error("DEBUG: checkAuth failed!", err.message);
+         set({ isAuthenticated: false, hasProfile: false, userSlug: null });
+         return false;
       });
-      return {
-        authenticated: true,
-        hasProfile: res.data.hasProfile,
-        slug: res.data.slug,
-      };
-    } catch (err) {
-      console.log("Auth check failed from checkAuthAndFetchSlug", err);
-      return { authenticated: false, hasProfile: false, slug: null };
-    } finally {
-      set({ loading: false });
-    }
   },
-  loginWithWallet: async (publicKey, signMessage) => {
+
+  login: (credentials) => {
+    set({ loading: true, authError: null });
+    return api.post(`/u/auth/login`, credentials)
+      .then(({ data }) => {
+        localStorage.setItem("token", data.token);
+        setAuthHeader(data.token);
+        set((state) => ({ 
+          token: data.token, 
+          formData: { ...state.formData, email: credentials.email }, 
+          loading: false,
+          isAuthenticated: true,
+          hasProfile: data.hasProfile,
+          userSlug: data.slug
+        }));
+        return true;
+      })
+      .catch((err) => {
+        set({ authError: err.response?.data?.error || "Login failed", loading: false });
+        return false;
+      });
+  },
+
+  signup: (credentials) => {
+    set({ loading: true, authError: null });
+    return api.post(`/u/auth/signup`, credentials)
+      .then(({ data }) => {
+        localStorage.setItem("token", data.token);
+        setAuthHeader(data.token);
+        set((state) => ({ 
+          token: data.token, 
+          formData: { ...state.formData, email: credentials.email, name: credentials.name }, 
+          loading: false,
+          isAuthenticated: true,
+          hasProfile: data.hasProfile,
+          userSlug: data.slug
+        }));
+        return true;
+      })
+      .catch((err) => {
+        set({ authError: err.response?.data?.error || "Signup failed", loading: false });
+        return false;
+      });
+  },
+  logout: async () => {
     try {
-      set({ loading: true, authError: null });
-
-      const { data } = await axios.post(
-        `/api/u/auth/nonce`,
-        { publicKey },
-        { withCredentials: true }
-      );
-
-      const encoded = new TextEncoder().encode(data.nonce);
-      const signed = await signMessage(encoded);
-      const signature = bs58.encode(signed);
-
-      const res = await axios.post(
-        `/api/u/auth/verifySign`,
-        { publicKey, signature },
-        { withCredentials: true }
-      );
-
-      return {
-        authenticated: res.data.authenticated,
-      };
-    } catch (err: any) {
-      if (err.response?.data?.error)
-        set({ authError: err.response.data.authE });
-      else if (err.message) set({ authError: err.message });
-      else set({ authError: "Unknown login error from loginWithWallet" });
-
-      return null;
-    } finally {
-      set({ loading: false });
+      await api.post("/u/auth/logout");
+    } catch (e) {
+      console.error("Logout failed on backend", e);
     }
-  },
+    localStorage.removeItem("token");
+    setAuthHeader(null);
+    set({
+      token: null,
+      isAuthenticated: false,
+      hasProfile: false,
+      userSlug: null,
+      formData: {
+        name: "",
+        email: "",
+        bio: "",
+        profilePic: "",
+        tags: [] as string[],
+        birthDate: "",
+        location: "",
+        twitter: "",
+        instagram: "",
+        linkedin: "",
+      }
+    });
+  }
 }));

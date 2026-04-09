@@ -1,249 +1,152 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useWallet } from "@solana/wallet-adapter-react";
+import toast from "react-hot-toast";
 
-import { useErrorStore } from "@/store/useErrorStore";
-import LeftPanel from "../_components/LoginPage/LeftPanel";
+import LeftPanel from "@/components/auth/LeftPanel";
 
-import CreatorFeatures from "./_components/RightPanelComponents/page1/CreatorFeatures";
-import HeroSection from "./_components/RightPanelComponents/page1/HeroSection";
-import SolanaCredits from "./_components/RightPanelComponents/page1/SolanaCredits";
-import ProfileForm from "./_components/RightPanelComponents/page2/ProfileForm";
+import CreatorFeatures from "@/components/auth/RightPanelComponents/page1/CreatorFeatures";
+import HeroSection from "@/components/auth/RightPanelComponents/page1/HeroSection";
+import ProfileForm from "@/components/auth/RightPanelComponents/page2/ProfileForm";
 
 import { useAuthStore } from "@/store/useAuthStore";
 
 const CreateProfilePage = () => {
-  const { publicKey } = useWallet();
-
   const [page, setPage] = useState(1);
   const router = useRouter();
-  const { formData, setFormData, resetFormData, profileFile } = useAuthStore();
+  const { formData, resetFormData, profileFile, checkAuth } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
 
-  const { globalError, setGlobalError, clearGlobalError } = useErrorStore();
-
-  const nextPage = () => {
-    setPage((prev) => prev + 1);
-  };
-
-  const previousPage = () => {
-    setPage((prev) => Math.max(1, prev - 1));
-  };
+  const nextPage = () => setPage((prev) => prev + 1);
+  const previousPage = () => setPage((prev) => Math.max(1, prev - 1));
 
   useEffect(() => {
-    clearGlobalError();
-
-    if (publicKey) {
-      setFormData({ publicKey: publicKey.toBase58() });
-    }
-  }, [publicKey, setFormData]);
+    // Page initialized
+  }, []);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const res = await axios.get(`/api/u/auth/checkAuthStatus`, {
-          withCredentials: true,
-        });
-        if (!res.data.authenticated) {
-          setGlobalError("You must be authenticated to create a profile.");
-          router.push("/u");
-        }
-      } catch (err: any) {
-        setGlobalError(
-          err?.response?.data?.error ||
-            err?.message ||
-            "Failed to check authentication status"
-        );
+    const runCheck = async () => {
+      const authenticated = await checkAuth();
+      if (!authenticated) {
+        toast.error("You must be logged in to create a profile.");
         router.push("/u");
       }
     };
+    runCheck();
+  }, [router, checkAuth]);
 
-    checkAuthStatus();
-  }, []);
-
-  const uploadToImageKit = async (file: File): Promise<string> => {
-    try {
-      const authResponse = await axios.get(`/api/api/imagekit/auth`);
-
-      const { signature, expire, token } = authResponse.data;
-      const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("fileName", file.name);
-      formData.append("publicKey", publicKey);
-      formData.append("signature", signature);
-      formData.append("expire", expire.toString());
-      formData.append("token", token);
-
-      formData.append("folder", "/profile-pictures");
-
-      for (let [key, value] of formData.entries()) {
-        if (key === "file") {
-          console.log(`${key}: [File object]`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-
-      const uploadResponse = await axios.post(
-        "https://upload.imagekit.io/api/v1/files/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          timeout: 30000,
-        }
-      );
-
-      return uploadResponse.data.url;
-    } catch (error) {
-      console.error("ImageKit upload error:", error);
-      if (axios.isAxiosError(error)) {
-        console.error("Response data:", error.response?.data);
-        console.error("Response status:", error.response?.status);
-      }
-      throw new Error("Failed to upload image");
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearGlobalError();
-
+  const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.bio.trim()) {
-      setGlobalError("Name and bio are required.");
+      toast.error("Name and bio are required");
+      return;
+    }
+
+    if (formData.bio.length > 300) {
+      toast.error("Bio must be 300 characters or less");
+      return;
+    }
+
+    if (formData.tags && formData.tags.length > 6) {
+      toast.error("You can select up to 6 tags only");
       return;
     }
 
     setLoading(true);
     try {
-      let imageUrl;
-      const localFile = profileFile;
-      if (localFile) {
-        imageUrl = await uploadToImageKit(localFile);
-      }
-      setFormData({ profilePic: imageUrl });
+      console.log("Submitting profile to:", api.defaults.baseURL + "/u/auth/createProfile");
+      const submissionData = new FormData();
+      
+      // Add text fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          // Flatten array for backend if needed or send as JSON
+          submissionData.append(key, JSON.stringify(value));
+        } else {
+          submissionData.append(key, value as string);
+        }
+      });
 
-      const res = await axios.post(
-        `/api/u/auth/createProfile`,
+      // Add profile picture file if exists
+      if (profileFile) {
+        submissionData.append("profilePic", profileFile);
+      }
+      
+      const res = await api.post(
+        `/u/auth/createProfile`,
+        submissionData,
         {
-          ...formData,
-          profilePic: imageUrl,
-          socialLinks: {
-            twitter: formData.twitter,
-            instagram: formData.instagram,
-            linkedin: formData.linkedin,
-            email: formData.email,
-          },
-        },
-        { withCredentials: true }
+          headers: {
+            "Content-Type": "multipart/form-data",
+          }
+        }
       );
 
       if (res.data?.slug) {
+        toast.success("Profile created successfully!");
         resetFormData();
         router.push(`/u/${res.data.slug}`);
       } else {
-        setGlobalError(res.data?.message || "No Slug found from handle submit");
+        toast.error("Failed to retrieve profile URL.");
       }
     } catch (err: any) {
-      const backendError =
-        err.response?.data?.error || err.message || "Upload failed";
-      setGlobalError(backendError);
+      const backendError = err.response?.data?.error || err.message || "Profile creation failed";
+      toast.error(backendError);
     } finally {
       setLoading(false);
     }
   };
 
   const handleButtonClick = () => {
-    if (page === 1) {
-      nextPage();
-    } else {
-      handleSubmit(new Event("submit") as any);
-    }
+    if (page === 1) nextPage();
+    else handleSubmit();
   };
 
   return (
-    <div className="overflow-hidden flex items-center justify-center h-screen">
-      {/* Global Error Display */}
-      {globalError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {globalError}
-        </div>
-      )}
-      <div className="w-[974px] h-[610px] flex bg-[#151515] rounded-5xl relative">
-        {/* Back Arrow Button - only show if not on page 1 */}
+    <div className="overflow-hidden flex items-center justify-center min-h-screen bg-black p-4 sm:p-6">
+      <div className="w-full max-w-5xl h-fit min-h-[610px] flex flex-col md:flex-row bg-[#151515] rounded-[40px] relative border border-gray-800 shadow-2xl overflow-hidden">
         {page > 1 && (
           <button
             onClick={previousPage}
-            className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-black border border-[#4d4d4d] rounded-full hover:bg-white hover:text-black transition-all duration-200"
+            className="absolute top-6 right-6 z-20 w-12 h-12 flex items-center justify-center bg-black border border-gray-700 rounded-full hover:bg-white hover:text-black transition-all duration-300"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
         )}
 
-        <LeftPanel />
+        <div className="hidden md:block md:w-5/12">
+          <LeftPanel />
+        </div>
 
-        {page == 1 && (
-          <div className="w-[490px] relative rounded-5xl ">
-            <div className="relative flex flex-col gap-[20px] w-[389px] h-fit top-[60px] left-[50px] ">
-              <HeroSection />
-
-              <CreatorFeatures />
-            </div>
-
-            <div className="w-full absolute rounded-5xl h-[50px] bottom-0">
-              <SolanaCredits />
-              <button
-                onClick={handleButtonClick}
-                className={`h-[50px] absolute w-[208px] flex items-center justify-center bottom-0 right-0 rounded-br-[40px] rounded-tl-[10px]
-          font-family-neue font-medium text-sm border border-[#4d4d4d] shadow-[inset_4px_6px_4px_2px_rgba(255,255,255,0.1)] overflow-hidden
-          transition ease-in-out bg-black cursor-pointer hover:bg-white hover:text-black hover:border-white hover:shadow-[inset_2px_2px_4.3px_2px_rgba(0,0,0,0.5)]  
-          `}
-              >
-                {page === 1 ? "Next" : "Sign In"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {page == 2 && (
-          <div className="w-[490px] relative rounded-5xl">
-            <div className="relative flex flex-col gap-[20px] w-[389px] h-fit top-[60px] left-[50px]">
+        <div className="flex-1 relative p-6 sm:p-12 flex flex-col justify-between">
+          <div className="flex flex-col gap-8 w-full max-w-md mx-auto">
+            {page === 1 ? (
+              <>
+                <HeroSection />
+                <CreatorFeatures />
+              </>
+            ) : (
               <ProfileForm />
-            </div>
+            )}
+          </div>
 
-            <div className="w-full absolute rounded-5xl h-[50px] bottom-0">
-              <SolanaCredits />
-              <button
-                onClick={handleButtonClick}
-                disabled={loading}
-                className={`h-[50px] absolute w-[208px] flex items-center justify-center bottom-0 right-0 rounded-br-[40px] rounded-tl-[10px]
-          font-family-neue font-medium text-sm border border-[#4d4d4d] shadow-[inset_4px_6px_4px_2px_rgba(255,255,255,0.1)] overflow-hidden
-          transition ease-in-out bg-black cursor-pointer hover:bg-white hover:text-black hover:border-white hover:shadow-[inset_2px_2px_4.3px_2px_rgba(0,0,0,0.5)]  
+          <div className="mt-12 flex justify-end -mr-6 sm:-mr-12 -mb-6 sm:-mb-12">
+            <button
+              onClick={handleButtonClick}
+              disabled={loading}
+              className={`h-[60px] w-[220px] flex items-center justify-center rounded-br-[40px] rounded-tl-[20px]
+          font-family-neue font-bold text-base border border-gray-700 shadow-[inset_0_2px_4px_rgba(255,255,255,0.05)]
+          transition-all duration-300 bg-black text-white cursor-pointer hover:bg-white hover:text-black hover:border-white shadow-xl
           ${loading ? "opacity-50 cursor-not-allowed" : ""}
           `}
-              >
-                {loading ? "Creating..." : "Sign In"}
-              </button>
-            </div>
+            >
+              {loading ? "Processing..." : page === 1 ? "Get Started" : "Launch Portfolio"}
+            </button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

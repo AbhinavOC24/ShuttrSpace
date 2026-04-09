@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "User" ALTER COLUMN "birthDate" SET NOT NULL,
-ALTER COLUMN "birthDate" SET DATA TYPE TEXT;

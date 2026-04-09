@@ -1,46 +1,53 @@
-import axios from "axios";
+import api from "@/lib/api";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useProfileStore } from "@/store/useProfileStore";
-import { useRouter } from "next/navigation";
-import { useErrorStore } from "@/store/useErrorStore";
+import { useAuthStore } from "@/store/useAuthStore";
+
 export const useProfile = () => {
   const store = useProfileStore();
-  const { setGlobalError } = useErrorStore();
+  const { checkAuth } = useAuthStore();
   const { slug } = useParams();
-  const router = useRouter();
+
   useEffect(() => {
-    const getProfile = async () => {
+    if (!slug) return;
+
+    const init = async () => {
+      // Step 1: Always resolve auth first — get the current user's slug
+      let resolvedUserSlug: string | null = null;
       try {
-        const res = await axios.post(
-          `/api/u/auth/getProfile`,
-          { slug },
-          { withCredentials: true }
-        );
-        if (
-          res.data.authenticated &&
-          res.data.sessionSlug === res.data.profile.slug
-        ) {
-          store.setCanEdit(true);
-        }
+        const authRes = await api.get("/u/auth/getSlug");
+        resolvedUserSlug = authRes.data.slug ?? null;
+        // Sync the store so the rest of the app knows too
+        useAuthStore.setState({
+          isAuthenticated: true,
+          hasProfile: authRes.data.hasProfile,
+          userSlug: resolvedUserSlug,
+        });
+      } catch {
+        // Not logged in — that's fine, just a visitor
+        resolvedUserSlug = null;
+      }
+
+      // Step 2: Fetch the profile
+      try {
+        const res = await api.get(`/u/auth/getProfile/${slug}`);
         if (res.data.profile) {
           store.setUserProfile(res.data.profile);
-          const photoRes = await axios.get(`/api/u/photo/getPhotos/${slug}`, {
-            withCredentials: true,
-          });
-          store.setUploaderPubkey(photoRes.data.publicKey);
 
-          store.setGallery(photoRes.data.photos);
+          const isOwner = resolvedUserSlug === res.data.profile.slug;
+          console.log(`Permission Check: resolvedUserSlug(${resolvedUserSlug}) vs profileSlug(${res.data.profile.slug}) -> ${isOwner}`);
+          store.setCanEdit(isOwner);
+
+          const photoRes = await api.get(`/u/photo/getPhotos/${slug}`);
+          store.setGallery(photoRes.data.photos || []);
         }
       } catch (err: any) {
-        setGlobalError(
-          err?.response?.data?.error ||
-            err?.message ||
-            "Failed to fetch profile"
-        );
+        console.error("Profile fetch failed!", err.message);
         store.setNotFound(true);
       }
     };
-    getProfile();
-  }, [slug, setGlobalError]);
+
+    init();
+  }, [slug]);
 };

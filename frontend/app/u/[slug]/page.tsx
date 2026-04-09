@@ -35,34 +35,68 @@ function ProfilePage() {
 
   if (!store.userProfile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading profile...
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className=" h-screen   flex flex-col items-center px-4 sm:px-24  bg-black text-white">
-      <div className="bg-black  h-full rounded-lg shadow-lg w-full    flex flex-col gap-[60px]">
+    <div className="min-h-screen flex flex-col items-center px-4 sm:px-16 lg:px-24 pt-8 sm:pt-12 pb-24 bg-black text-white">
+      <div className="w-full flex flex-col gap-10">
         <Header setSettingModalStatus={setSettingModalStatus} />
 
-        <div className="h-fit w-full p-4 sm:p-8 bg-[rgba(255,255,255,0.05)] rounded-[10px] border-[0.5px] border-[#999999] sm:columns-[320px]">
-          {photosToShow.map((photo, index) => (
-            <Image
-              key={index}
-              src={photo.thumbnailUrl || ""}
-              alt={photo.title || `Uploaded ${index}`}
-              width={100}
-              height={100}
-              unoptimized
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="w-full object-contain mb-4"
-              onClick={() => {
-                store.setSelectedImage(photo);
-                store.setImageDetailModalStatus(true);
-              }}
-            />
-          ))}
+        <div className="w-full p-4 sm:p-8 bg-white/[0.04] rounded-2xl border border-white/10 sm:columns-[320px]">
+          {photosToShow.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center col-span-full">
+              <p className="text-white/20 font-family-neue font-medium text-lg tracking-widest uppercase">
+                No captures shared yet
+              </p>
+            </div>
+          ) : (
+            photosToShow.map((photo, index) => (
+              <div
+                key={index}
+                className="relative mb-4 rounded-lg overflow-hidden cursor-pointer group"
+                onClick={() => {
+                  store.setSelectedImage(photo);
+                  store.setImageDetailModalStatus(true);
+                }}
+              >
+                {/* The image — zooms in on hover */}
+                <Image
+                  src={photo.thumbnailUrl || ""}
+                  alt={photo.title || `Uploaded ${index}`}
+                  width={100}
+                  height={100}
+                  unoptimized
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="w-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
+                />
+
+                {/* Gradient overlay — fades in on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-out" />
+
+                {/* Title + location — slides up on hover */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-400 ease-out">
+                  {photo.title && (
+                    <p className="text-white font-family-helvetica font-medium text-sm leading-tight truncate">
+                      {photo.title}
+                    </p>
+                  )}
+                  {photo.location && (
+                    <p className="text-white/60 font-family-neue text-xs mt-0.5 flex items-center gap-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {photo.location}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
