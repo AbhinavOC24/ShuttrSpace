@@ -12,6 +12,8 @@ import UploadImageModal from "./_components/UploadImageModal";
 import Header from "./_components/Header";
 import ImageDetails from "./_components/ImageDetails";
 import { useRouter } from "next/navigation";
+import Masonry from "react-masonry-css";
+
 function ProfilePage() {
   const store = useProfileStore();
   const router = useRouter();
@@ -26,6 +28,12 @@ function ProfilePage() {
       router.push("/404");
     }
   }, [store.notFound, router]);
+
+  const breakpointColumnsObj = {
+    default: 3,
+    1100: 2,
+    700: 1,
+  };
 
   if (store.notFound) {
     <div className="flex items-center justify-center min-h-screen">
@@ -46,7 +54,7 @@ function ProfilePage() {
       <div className="w-full flex flex-col gap-10">
         <Header setSettingModalStatus={setSettingModalStatus} />
 
-        <div className="w-full p-4 sm:p-8 bg-white/[0.04] rounded-2xl border border-white/10 sm:columns-[320px]">
+        <div className="w-full p-4 sm:p-8 bg-white/[0.09] rounded-3xl border border-white/10">
           {photosToShow.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center col-span-full">
               <p className="text-white/20 font-family-neue font-medium text-lg tracking-widest uppercase">
@@ -54,48 +62,54 @@ function ProfilePage() {
               </p>
             </div>
           ) : (
-            photosToShow.map((photo, index) => (
-              <div
-                key={index}
-                className="relative mb-4 rounded-lg overflow-hidden cursor-pointer group"
-                onClick={() => {
-                  store.setSelectedImage(photo);
-                  store.setImageDetailModalStatus(true);
-                }}
-              >
-                {/* The image — zooms in on hover */}
-                <Image
-                  src={photo.thumbnailUrl || ""}
-                  alt={photo.title || `Uploaded ${index}`}
-                  width={500}
-                  height={500}
-                  unoptimized
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-                />
+            <Masonry
+              breakpointCols={breakpointColumnsObj}
+              className="flex w-auto -ml-4"
+              columnClassName="pl-4 bg-clip-padding"
+            >
+              {photosToShow.map((photo, index) => (
+                <div
+                  key={index}
+                  className="relative mb-4 rounded-xl overflow-hidden cursor-pointer group border border-white/5 opacity-0 animate-fade-in-up"
+                  style={{ animationDelay: `${(index % 12) * 60}ms` }}
+                  onClick={() => {
+                    store.setSelectedImage(photo);
+                    store.setImageDetailModalStatus(true);
+                  }}
+                >
+                  {/* The image — zooms in on hover */}
+                  <Image
+                    src={photo.thumbnailUrl || ""}
+                    alt={photo.title || `Uploaded ${index}`}
+                    width={500}
+                    height={500}
+                    unoptimized
+                    className="w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                  />
 
-                {/* Gradient overlay — fades in on hover */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-out" />
+                  {/* Gradient overlay — fades in on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-out" />
 
-                {/* Title + location — slides up on hover */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-400 ease-out">
-                  {photo.title && (
-                    <p className="text-white font-family-helvetica font-medium text-sm leading-tight truncate">
-                      {photo.title}
-                    </p>
-                  )}
-                  {photo.location && (
-                    <p className="text-white/60 font-family-neue text-xs mt-0.5 flex items-center gap-1">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      {photo.location}
-                    </p>
-                  )}
+                  {/* Title + location — slides up on hover */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-400 ease-out">
+                    {photo.title && (
+                      <p className="text-white font-family-helvetica font-medium text-sm leading-tight truncate">
+                        {photo.title}
+                      </p>
+                    )}
+                    {photo.location && (
+                      <p className="text-white/60 font-family-neue text-xs mt-0.5 flex items-center gap-1">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        {photo.location}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </Masonry>
           )}
         </div>
       </div>
@@ -112,16 +126,14 @@ function ProfilePage() {
           </div>
         </button>
       )}
-      {store.imageDetailModalStatus && <ImageDetails />}
+      <ImageDetails />
       <UploadImageModal slug={slug as string} />
 
       {/* Settings Modal */}
-      {store.canEdit && (
-        <SettingsModal
-          isOpen={settingModalStatus}
-          onClose={() => setSettingModalStatus(false)}
-        />
-      )}
+      <SettingsModal
+        isOpen={settingModalStatus}
+        onClose={() => setSettingModalStatus(false)}
+      />
     </div>
   );
 }

@@ -15,7 +15,7 @@ const LeftPanel = () => (
         <div className="relative mt-[-1.00px] font-family-helvetica font-normal text-white text-[28px] -tracking-normal leading-7">
           Welcome to
           <br />
-          ShuttrSpace
+          Iso
         </div>
         <div className="relative self-stretch font-family-neue font-normal text-white text-[10px] tracking-[0] leading-[normal]">
           By photographers, for photographers

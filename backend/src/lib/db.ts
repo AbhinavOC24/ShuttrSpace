@@ -10,7 +10,7 @@ const pool = new Pool({
 });
 
 export const initializeDatabase = async () => {
-  const dbName = "shuttrspace";
+  const dbName = "iso";
   
   // 1. First, combine a connection string to the default 'postgres' database
   // We take the existing DATABASE_URL and replace the database name at the end

@@ -131,7 +131,7 @@ export default function InfiniteScrollGallery() {
       )}
 
       {/* Global Image Detail Modal */}
-      {store.imageDetailModalStatus && <ImageDetails />}
+      <ImageDetails />
     </div>
   );
 }

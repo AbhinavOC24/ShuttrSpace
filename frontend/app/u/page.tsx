@@ -109,7 +109,7 @@ const LoginPage = () => {
 
             {/* Brand mark on mobile */}
             <p className="md:hidden text-white/30 text-xs uppercase tracking-widest font-semibold mb-8">
-              ShuttrSpace
+              Iso
             </p>
 
             {/* Heading */}

@@ -1,6 +1,6 @@
-# ShuttrSpace
+# Iso
 
-**ShuttrSpace** is a full-stack, portfolio-grade photography platform. Photographers can easily upload, manage, and share their work, while general users can explore an infinite-scroll gallery of high-resolution images. 
+**Iso** is a full-stack, portfolio-grade photography platform. Photographers can easily upload, manage, and share their work, while general users can explore an infinite-scroll gallery of high-resolution images. 
 
 This project was recently transitioned to a robust, highly optimized Web2 architecture to prioritize speed, simplicity, and ease of deployment.
 
@@ -8,7 +8,7 @@ This project was recently transitioned to a robust, highly optimized Web2 archit
 
 ## High-Level Design (HLD) & Architecture
 
-ShuttrSpace is built on a clean client-server architecture utilizing **Next.js** for the frontend and **Node.js/Express** for the backend, backed by **PostgreSQL** and **ImageKit**.
+Iso is built on a clean client-server architecture utilizing **Next.js** for the frontend and **Node.js/Express** for the backend, backed by **PostgreSQL** and **ImageKit**.
 
 ### System Diagram & Flow
 
@@ -33,7 +33,7 @@ ShuttrSpace is built on a clean client-server architecture utilizing **Next.js**
 
 ### Authentication Architecture (JWT & Secure Cookies)
 
-ShuttrSpace utilizes an industry-standard, deeply secure double-token system:
+Iso utilizes an industry-standard, deeply secure double-token system:
 
 1. **Authentication Flow**:
     - Users sign up or log in with Email and Password using `bcrypt` hashing.
@@ -71,8 +71,8 @@ ShuttrSpace utilizes an industry-standard, deeply secure double-token system:
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourusername/shuttrspace.git
-cd shuttrspace
+git clone https://github.com/yourusername/iso.git
+cd iso
 
 # 2. Install dependencies for both modules
 cd backend && npm install
@@ -91,8 +91,8 @@ FRONTEND_URL=http://localhost:3000
 NODE_ENV=development
 
 # Database 
-# Create an empty Postgres database named 'shuttrspace' prior to this
-DATABASE_URL=postgres://username:password@localhost:5432/shuttrspace
+# Create an empty Postgres database named 'iso' prior to this
+DATABASE_URL=postgres://username:password@localhost:5432/iso
 
 # Auth Configuration
 JWT_SECRET=your_super_secret_access_key
@@ -111,7 +111,7 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
 ### Running the Application
 
-ShuttrSpace auto-migrates its Postgres database upon startup. Once your `.env` variables are in place:
+Iso auto-migrates its Postgres database upon startup. Once your `.env` variables are in place:
 
 ```bash
 # Run backend (From /backend)

@@ -372,6 +372,19 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
     const validMetadata = metadataResult.data;
     const parsedJobIds = jobIds || [];
 
+    const incomingTags = Array.from(new Set(validMetadata.flatMap(meta => meta.tags || [])));
+    if (incomingTags.length > 0) {
+      // 1. Fetch the user's current tags
+      const userResult = await pool.query("SELECT tags FROM users WHERE id = $1", [req.user?.id]);
+      const currentTags = userResult.rows[0]?.tags || [];
+
+      // 2. Merge the old and new tags using JavaScript Sets to remove duplicates
+      const mergedTags = Array.from(new Set([...currentTags, ...incomingTags]));
+
+      // 3. Save the merged list back to the database with a simple update
+      await pool.query("UPDATE users SET tags = $1 WHERE id = $2", [mergedTags, req.user?.id]);
+    }
+
     const jobs = validMetadata.map((meta, index) => {
       const jobId = parsedJobIds[index];
 

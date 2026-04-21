@@ -49,7 +49,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ShuttrSpace",
+  title: "Iso",
   description: "Your photography portfolio",
 };
 
@@ -85,22 +85,22 @@ export default function RootLayout({
 
 function Navbar() {
   return (
-    <nav className="bg-black border-b border-white/8 sticky top-0 z-50">
+    <nav className="bg-black/60 backdrop-blur-xl border-b border-white/15 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
-          <Link href="/" className="text-xl font-bold text-white">
-            ShuttrSpace
+        <div className="flex justify-between items-center h-[72px]">
+          <Link href="/" className="text-2xl font-bold text-white">
+            Iso
           </Link>
           <div className="flex space-x-4">
             <Link
               href="/"
-              className="px-3 py-2 rounded-md text-sm font-medium text-white hover:text-gray-200"
+              className="px-3 py-2 rounded-md text-base font-medium text-white hover:text-gray-200"
             >
               Home
             </Link>
             <Link
               href="/u"
-              className="px-3 py-2 rounded-md text-sm font-medium text-white hover:text-gray-200"
+              className="px-3 py-2 rounded-md text-base font-medium text-white hover:text-gray-200"
             >
               Profile
             </Link>
