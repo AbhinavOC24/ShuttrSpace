@@ -11,9 +11,18 @@ export const useUploadFiles = () => {
 
     const uploadToast = toast.loading(`Uploading ${store.uploadQueue.length} photo${store.uploadQueue.length > 1 ? "s" : ""}…`);
 
+    // Capture a local copy of the queue so we can clear the store immediately
+    const queueToUpload = [...store.uploadQueue];
+
+    // ── INSTANT UI FEEDBACK ──
+    // Close modal and reset its state immediately so the user can continue browsing
+    store.setuploadImageModalStatus(false);
+    store.setUploadQueue([]);
+    store.setCurrentIndex(0);
+
     try {
       const uploadedResults = await Promise.all(
-        store.uploadQueue.map(async (photo) => {
+        queueToUpload.map(async (photo) => {
           // Get a fresh signature for each file
           const authRes = await api.get("/u/photo/uploadAuth");
           const { signature, token, expire, publicKey } = authRes.data;
@@ -41,7 +50,7 @@ export const useUploadFiles = () => {
         })
       );
 
-      const metadata = store.uploadQueue.map((photo, index) => ({
+      const metadata = queueToUpload.map((photo, index) => ({
         title: photo.title,
         tags: photo.tags,
         location: photo.location,
@@ -49,13 +58,27 @@ export const useUploadFiles = () => {
         imageUrl: uploadedResults[index].url,
       }));
 
-      const jobIds = store.uploadQueue.map(() => crypto.randomUUID());
+      const jobIds = queueToUpload.map(() => crypto.randomUUID());
 
       const response = await api.post(`/u/photo/uploadPhotos`, {
         metadata,
         jobIds,
         slug,
       });
+
+      // ── OPTIMISTIC UI UPDATE ──
+      // Show images in gallery immediately using local previews while worker processes
+      const optimisticPhotos = queueToUpload.map((photo, index) => ({
+        id: Math.random(), // Temp ID
+        title: photo.title || "Untitled",
+        tags: photo.tags,
+        thumbnailUrl: URL.createObjectURL(photo.file),
+        imageUrl: uploadedResults[index].url,
+        createdAt: new Date().toISOString(),
+        isProcessing: true,
+      }));
+
+      store.setGallery([...optimisticPhotos, ...store.gallery]);
 
       if (response.data.jobIds) {
         const pollJobStatus = async () => {
@@ -83,10 +106,7 @@ export const useUploadFiles = () => {
       const errMsg = error.response?.data?.error || "Failed to upload photos";
       toast.error(errMsg, { id: uploadToast });
     } finally {
-      store.setuploadImageModalStatus(false);
       store.setUploading(false);
-      store.setUploadQueue([]);
-      store.setCurrentIndex(0);
     }
   };
 

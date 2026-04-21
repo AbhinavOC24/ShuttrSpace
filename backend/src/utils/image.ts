@@ -56,5 +56,7 @@ export const savePhoto = async ({ userId, imageUrl, thumbnailUrl, metadata }: Sa
     ]
   );
 
-  return result.rows[0];
+  const photo = result.rows[0];
+  console.log(`[DB] 💾 Photo '${photo.title}' saved to database for userId: ${userId} (ID: ${photo.id})`);
+  return photo;
 };

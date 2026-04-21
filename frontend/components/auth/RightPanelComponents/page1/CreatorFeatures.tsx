@@ -4,18 +4,18 @@ const CREATOR_FEATURES = {
 };
 
 const CreatorFeatures = () => (
-  <div className="flex flex-col gap-2.5 absolute bottom-0 w-full">
-    <div className="text-[16px] font-family-neue font-medium leading-[normal] self-stretch mt-[-1px]">
+  <div className="flex flex-col gap-4 mt-4 w-full">
+    <div className="text-[16px] font-family-neue font-medium leading-[normal] self-stretch text-white/40">
       Built for creators who
     </div>
 
-    <div className="flex flex-col gap-1 ">
-      <div className="flex gap-[2px]">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
         {CREATOR_FEATURES.upper.map((content, i) => (
           <FeatureTag key={i} content={content} />
         ))}
       </div>
-      <div className="flex gap-[2px]">
+      <div className="flex flex-wrap gap-2">
         {CREATOR_FEATURES.lower.map((content, i) => (
           <FeatureTag key={i} content={content} />
         ))}

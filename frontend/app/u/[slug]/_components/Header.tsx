@@ -15,7 +15,7 @@ function Header({ setSettingModalStatus }: HeaderProps) {
   if (!store.userProfile) return <div>Cant find store.userProfile</div>;
   return (
     <div className="flex flex-col  items-center sm:flex-row sm:items-start  sm:gap-5 ">
-      <div className=" h-80 w-80 sm:w-3xs sm:h-64 rounded-[20px] overflow-hidden ">
+      <div className="w-full max-w-80 sm:w-64 aspect-square rounded-[20px] overflow-hidden shrink-0">
         <img
           src={store.userProfile.profilePic}
           alt={store.userProfile.name}

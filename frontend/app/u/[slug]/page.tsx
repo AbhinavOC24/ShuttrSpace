@@ -69,10 +69,11 @@ function ProfilePage() {
             >
               {photosToShow.map((photo, index) => (
                 <div
-                  key={index}
-                  className="relative mb-4 rounded-xl overflow-hidden cursor-pointer group border border-white/5 opacity-0 animate-fade-in-up"
+                  key={photo.id || index}
+                  className={`relative mb-4 rounded-xl overflow-hidden cursor-pointer group border border-white/5 opacity-0 animate-fade-in-up ${photo.isProcessing ? "cursor-wait" : ""}`}
                   style={{ animationDelay: `${(index % 12) * 60}ms` }}
                   onClick={() => {
+                    if (photo.isProcessing) return;
                     store.setSelectedImage(photo);
                     store.setImageDetailModalStatus(true);
                   }}
@@ -84,29 +85,41 @@ function ProfilePage() {
                     width={500}
                     height={500}
                     unoptimized
-                    className="w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    className={`w-full h-auto object-cover transition-all duration-700 ease-out ${photo.isProcessing ? "opacity-60 grayscale blur-sm" : "group-hover:scale-110"}`}
                   />
 
+                  {/* Processing Overlay */}
+                  {photo.isProcessing && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                      <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin mb-2" />
+                      <p className="text-[10px] font-family-neue font-medium tracking-[0.2em] uppercase text-white/80">Processing</p>
+                    </div>
+                  )}
+
                   {/* Gradient overlay — fades in on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-out" />
+                  {!photo.isProcessing && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-out" />
+                  )}
 
                   {/* Title + location — slides up on hover */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-400 ease-out">
-                    {photo.title && (
-                      <p className="text-white font-family-helvetica font-medium text-sm leading-tight truncate">
-                        {photo.title}
-                      </p>
-                    )}
-                    {photo.location && (
-                      <p className="text-white/60 font-family-neue text-xs mt-0.5 flex items-center gap-1">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        {photo.location}
-                      </p>
-                    )}
-                  </div>
+                  {!photo.isProcessing && (
+                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-400 ease-out">
+                      {photo.title && (
+                        <p className="text-white font-family-helvetica font-medium text-sm leading-tight truncate">
+                          {photo.title}
+                        </p>
+                      )}
+                      {photo.location && (
+                        <p className="text-white/60 font-family-neue text-xs mt-0.5 flex items-center gap-1">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                          {photo.location}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </Masonry>

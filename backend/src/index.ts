@@ -239,7 +239,7 @@ app.get("/u/getProfile/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const result = await pool.query(
-      "SELECT name, email, bio, profile_pic as \"profilePic\", location, tags, slug FROM users WHERE LOWER(slug) = LOWER($1)",
+      "SELECT name, email, bio, profile_pic as \"profilePic\", location, birth_date as \"birthDate\", tags, slug, twitter, instagram, linkedin FROM users WHERE LOWER(slug) = LOWER($1)",
       [slug]
     );
 
@@ -382,7 +382,7 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
       const mergedTags = Array.from(new Set([...currentTags, ...incomingTags]));
 
       // 3. Save the merged list back to the database with a simple update
-      await pool.query("UPDATE users SET tags = $1 WHERE id = $2", [mergedTags, req.user?.id]);
+      await pool.query("UPDATE users SET tags = $1::jsonb WHERE id = $2", [JSON.stringify(mergedTags), req.user?.id]);
     }
 
     const jobs = validMetadata.map((meta, index) => {
@@ -414,6 +414,7 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
     });
 
     await uploadQueue.addBulk(jobs);
+    console.log(`[Queue] 🚀 Successfully queued ${jobs.length} upload jobs for userId: ${req.user?.id}`);
     return res.status(201).json({ message: "Uploading your Images", jobIds: parsedJobIds });
   } catch (error) {
     console.error(error);

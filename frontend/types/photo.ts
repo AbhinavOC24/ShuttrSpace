@@ -18,6 +18,7 @@ export type PhotoFromDB = {
   uploaderName?: string;
   uploaderProfilePic?: string;
   uploaderSlug?: string;
+  isProcessing?: boolean;
 };
 
 export type PhotosFromUploadQueue = {
