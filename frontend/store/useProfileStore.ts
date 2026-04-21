@@ -1,53 +1,10 @@
 import { create } from "zustand";
-export type UserProfile = {
-  name: string;
-  bio: string;
-  profilePic: string;
-  tags: string[];
-  location: string;
-  twitter?: string | null;
-  instagram?: string | null;
-  linkedin?: string | null;
-  email?: string | null;
-  publicKey?: string;
-  birthDate?: string;
-  createdAt?: string;
-};
+import { UserProfile } from "@/types/user";
+import { PhotoFromDB, PhotosFromUploadQueue } from "@/types/photo";
 
-type cameraDetails = {
-  cameraname: string;
-  lens: string;
-  aperture: string;
-  iso: string;
-  shutterspeed: string;
-};
-export type PhotosFromUploadQueue = {
-  file: File;
-  title: string;
-  tags: string[];
-  location?: string;
-  cameraDetails: cameraDetails;
-  imageUrl?: string;
-  thumbnailUrl?: string;
-};
+// Re-export for any modules relying on these definitions being here (temporary backward compatibility)
+export type { UserProfile, PhotosFromUploadQueue, PhotoFromDB };
 
-export type PhotoFromDB = {
-  id: number;
-  title: string;
-  tags: string[];
-  location?: string;
-  cameraname?: string;
-  lens?: string;
-  aperture?: string;
-  iso?: string;
-  shutterspeed?: string;
-  imageUrl: string;
-  thumbnailUrl: string;
-  createdAt: string;
-  uploaderName?: string;
-  uploaderProfilePic?: string;
-  uploaderSlug?: string;
-};
 
 interface ProfileState {
   userProfile: UserProfile | null;

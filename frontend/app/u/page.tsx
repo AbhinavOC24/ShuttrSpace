@@ -13,6 +13,7 @@ const LoginPage = () => {
   const { login, signup, checkAuth, loading } = useAuthStore();
 
   const [isMounted, setIsMounted] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState(""); // For signup
@@ -26,6 +27,9 @@ const LoginPage = () => {
       if (authenticated && useAuthStore.getState().userSlug) {
         const { hasProfile, userSlug } = useAuthStore.getState();
         router.push(hasProfile ? `/u/${userSlug}` : "/u/createprofile");
+      } else {
+        // Not authenticated — show login form
+        setIsCheckingAuth(false);
       }
     };
     checkSession();
@@ -75,10 +79,13 @@ const LoginPage = () => {
     }
   };
 
-  if (!isMounted) {
+  if (!isMounted || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <p className="text-white/30 text-xs uppercase tracking-widest font-medium">Loading profile...</p>
+        </div>
       </div>
     );
   }

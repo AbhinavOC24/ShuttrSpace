@@ -6,7 +6,7 @@ const backendUrl =
     : "http://localhost:8000"; // your local backend port
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: false,
   images: {
     remotePatterns: [
       {

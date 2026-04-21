@@ -1,23 +1,8 @@
 import { create } from "zustand";
-import api from "@/lib/api";
+import { PhotoFromDB } from "@/types/photo";
 
-export type PhotoFromDB = {
-  id: number;
-  title: string;
-  tags: string[];
-  location?: string;
-  cameraname?: string;
-  lens?: string;
-  aperture?: string;
-  iso?: string;
-  shutterspeed?: string;
-  imageUrl: string;
-  thumbnailUrl: string;
-  createdAt: string;
-  uploaderName?: string;
-  uploaderProfilePic?: string;
-  uploaderSlug?: string;
-};
+// Re-export for backward compatibility
+export type { PhotoFromDB };
 
 interface PhotoGalleryState {
   photos: PhotoFromDB[];
