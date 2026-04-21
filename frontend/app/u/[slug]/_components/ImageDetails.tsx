@@ -8,7 +8,6 @@ const ImageDetails = () => {
   const photo = store.selectedImage;
 
   if (!store.imageDetailModalStatus || !photo) return null;
-  if (!store.userProfile) return null;
 
   const exifItems = [
     { label: "Camera", value: photo.cameraname, icon: "📷" },
@@ -21,10 +20,12 @@ const ImageDetails = () => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-      onClick={(e) => e.target === e.currentTarget && store.setImageDetailModalStatus(false)}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+      <div 
+        className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer" 
+        onClick={() => store.setImageDetailModalStatus(false)}
+      />
 
       {/* Modal */}
       <div className="relative w-full max-w-5xl rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex flex-col sm:flex-row"
@@ -81,17 +82,17 @@ const ImageDetails = () => {
           {/* Photographer row */}
           <div className="px-6 py-4 border-b border-white/8 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full overflow-hidden border border-white/10 flex-shrink-0">
-              {store.userProfile.profilePic ? (
-                <img src={store.userProfile.profilePic} alt={store.userProfile.name} className="w-full h-full object-cover" />
+              {photo.uploaderProfilePic || store.userProfile?.profilePic ? (
+                <img src={photo.uploaderProfilePic || store.userProfile?.profilePic} alt={photo.uploaderName || store.userProfile?.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-white/10 flex items-center justify-center text-white/30 text-sm">
-                  {store.userProfile.name?.[0]?.toUpperCase()}
+                  {(photo.uploaderName || store.userProfile?.name)?.[0]?.toUpperCase() || "?"}
                 </div>
               )}
             </div>
             <div>
-              <p className="text-white text-sm font-medium capitalize">{store.userProfile.name}</p>
-              <p className="text-white/30 text-[11px]">{store.userProfile.location || "Photographer"}</p>
+              <p className="text-white text-sm font-medium capitalize">{photo.uploaderName || store.userProfile?.name || "Anonymous"}</p>
+              <p className="text-white/30 text-[11px]">Shot by this artist</p>
             </div>
           </div>
 

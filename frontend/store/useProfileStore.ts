@@ -44,6 +44,9 @@ export type PhotoFromDB = {
   imageUrl: string;
   thumbnailUrl: string;
   createdAt: string;
+  uploaderName?: string;
+  uploaderProfilePic?: string;
+  uploaderSlug?: string;
 };
 
 interface ProfileState {

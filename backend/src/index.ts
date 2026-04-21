@@ -455,9 +455,12 @@ app.get("/u/photo/getInfinitePhotos", async (req: Request, res: Response) => {
     const skip = parseInt(req.query.skip as string) || 0;
     const take = parseInt(req.query.take as string) || 20;
     const result = await pool.query(
-      `SELECT id, title, tags, thumbnail_url as "thumbnailUrl", image_url as "imageUrl", 
-              location, cameraname, lens, aperture, iso, shutterspeed, created_at as "createdAt"
-       FROM photos ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+      `SELECT p.id, p.title, p.tags, p.thumbnail_url as "thumbnailUrl", p.image_url as "imageUrl", 
+              p.location, p.cameraname, p.lens, p.aperture, p.iso, p.shutterspeed, p.created_at as "createdAt",
+              u.name as "uploaderName", u.profile_pic as "uploaderProfilePic", u.slug as "uploaderSlug"
+       FROM photos p
+       JOIN users u ON p.user_id = u.id
+       ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`,
       [take, skip]
     );
     res.json(result.rows);

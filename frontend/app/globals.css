@@ -20,6 +20,26 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -28,6 +48,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
 .rounded-5xl {
   border-radius: 40px;
 }
@@ -37,12 +58,15 @@ body {
   background-repeat: repeat;
   background-size: 182px;
   opacity: 1;
-  mix-blend-mode: overlay; /* key change */
+  mix-blend-mode: overlay;
+  /* key change */
 
   pointer-events: none;
 }
+
 .creator-border {
-  background-color: rgba(0, 0, 0, 0.05); /* #0000000d */
+  background-color: rgba(0, 0, 0, 0.05);
+  /* #0000000d */
 
   border: 0.5px solid rgba(77, 77, 77, 1);
 
@@ -54,14 +78,16 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 4px 8px; /* py-1.5 px-3 */
+  padding: 4px 8px;
+  /* py-1.5 px-3 */
   position: relative;
   border-radius: 10px;
   overflow: hidden;
 }
 
 .special-creator-border {
-  background-color: rgba(255, 255, 255, 1); /* #0000000d */
+  background-color: rgba(255, 255, 255, 1);
+  /* #0000000d */
 
   border: 1px solid rgb(255, 255, 255);
 
@@ -73,14 +99,16 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 4px 8px; /* py-1.5 px-3 */
+  padding: 4px 8px;
+  /* py-1.5 px-3 */
   position: relative;
   border-radius: 10px;
   overflow: hidden;
 }
 
 .CTA-button {
-  background-color: rgba(0, 0, 0, 1); /* #0000000d */
+  background-color: rgba(0, 0, 0, 1);
+  /* #0000000d */
 
   border: 1px solid rgba(77, 77, 77, 1);
 
@@ -126,24 +154,20 @@ body {
 
 .twitter-box:hover .twitter-glow {
   opacity: 1;
-  filter: brightness(0) invert(1) drop-shadow(0 0 10px #ffffff)
-    drop-shadow(0 0 20px #ffffff);
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 20px #ffffff);
 }
 
 .email-box:hover .email-glow {
   opacity: 1;
-  filter: brightness(0) invert(1) drop-shadow(0 0 10px #ed3535)
-    drop-shadow(0 0 20px #ed3535);
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #ed3535) drop-shadow(0 0 20px #ed3535);
 }
 
 .linkedin-box:hover .linkedin-glow {
   opacity: 1;
-  filter: brightness(0) invert(1) drop-shadow(0 0 10px #4bb5e2)
-    drop-shadow(0 0 20px #4bb5e2);
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #4bb5e2) drop-shadow(0 0 20px #4bb5e2);
 }
 
 .instagram-box:hover .instagram-glow {
   opacity: 1;
-  filter: brightness(0) invert(1) drop-shadow(0 0 10px #b54be2)
-    drop-shadow(0 0 20px #b54be2);
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px #b54be2) drop-shadow(0 0 20px #b54be2);
 }

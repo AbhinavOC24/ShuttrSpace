@@ -67,11 +67,11 @@ function ProfilePage() {
                 <Image
                   src={photo.thumbnailUrl || ""}
                   alt={photo.title || `Uploaded ${index}`}
-                  width={100}
-                  height={100}
+                  width={500}
+                  height={500}
                   unoptimized
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="w-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
+                  className="w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 />
 
                 {/* Gradient overlay — fades in on hover */}
