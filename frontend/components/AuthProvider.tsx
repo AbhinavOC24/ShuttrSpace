@@ -9,7 +9,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     console.log("DEBUG: AuthProvider mounting, calling checkAuth...");
     checkAuth();
-  }, [checkAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <>{children}</>;
 }

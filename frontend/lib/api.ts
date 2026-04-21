@@ -71,7 +71,6 @@ api.interceptors.response.use(
         processQueue(err, null);
         localStorage.removeItem("token");
         setAuthHeader(null);
-        if (typeof window !== "undefined") window.location.href = "/u";
       } finally {
         isRefreshing = false;
       }

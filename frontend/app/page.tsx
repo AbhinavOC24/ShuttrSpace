@@ -6,7 +6,10 @@ import Image from "next/image";
 import Masonry from "react-masonry-css";
 
 export default function InfiniteScrollGallery() {
-  const { photos, setPhotos, resetPhotos } = usePhotoGalleryStore();
+  const photos = usePhotoGalleryStore((state) => state.photos);
+  const addPhotos = usePhotoGalleryStore((state) => state.addPhotos);
+  const resetPhotos = usePhotoGalleryStore((state) => state.resetPhotos);
+
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -14,9 +17,9 @@ export default function InfiniteScrollGallery() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
   const fetchMore = useCallback(async () => {
-    try {
-      if (loading || !hasMore) return;
+    if (loading || !hasMore) return;
 
+    try {
       setLoading(true);
       console.log(`Fetching page ${page}...`);
 
@@ -32,21 +35,22 @@ export default function InfiniteScrollGallery() {
         return;
       }
 
-      setPhotos([...photos, ...newBatch]);
-
+      addPhotos(newBatch);
       setPage((prev) => prev + 1);
     } catch (error) {
       console.error("fetch error", error);
     } finally {
       setLoading(false);
     }
-  }, [loading, hasMore, page, setPhotos]);
+  }, [loading, hasMore, page, addPhotos]);
 
+  // Initial reset - ONLY on mount
   useEffect(() => {
     resetPhotos();
     setPage(0);
     setHasMore(true);
-  }, [resetPhotos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const currentLoader = loaderRef.current;

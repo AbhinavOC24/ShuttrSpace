@@ -9,8 +9,12 @@ import imagekit from "./lib/imagekit";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import rateLimit from "express-rate-limit";
-import { signupSchema, loginSchema, createUserProfileSchema } from "./lib/schemas";
+import { signupSchema, loginSchema, createUserProfileSchema, photoMetadataArraySchema } from "./lib/schemas";
 import { initializeDatabase } from "./lib/db";
+import { uploadQueue } from "./queue/uploadQueue";
+
+
+
 
 dotenv.config();
 
@@ -23,6 +27,14 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser());
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
+
+/**
+ * LOGGING MIDDLEWARE
+ */
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 /**
  *  AUTH MIDDLEWARE & UTILS
@@ -333,48 +345,89 @@ app.put("/u/updateProfile", authenticateToken, upload.single("profilePic"), asyn
  *  ROUTES - PHOTOS & UPLOAD
  */
 
-app.post("/u/photo/uploadPhotos", authenticateToken, upload.array("photos"), async (req: AuthRequest, res: Response) => {
+app.get("/u/photo/uploadAuth", authenticateToken, (req, res) => {
+  const authParams = imagekit.getAuthenticationParameters();
+  res.send({
+    ...authParams,
+    publicKey: process.env.IMAGEKIT_PUBLICKEY
+  });
+});
+
+app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const files = req.files as Express.Multer.File[];
-    const metadata = JSON.parse(req.body.metadata || "[]");
+    const { metadata, jobIds, slug } = req.body;
 
-    if (!files || files.length === 0) return res.status(400).json({ error: "No files uploaded" });
+    if (!metadata || metadata.length === 0) {
+      return res.status(400).json({ error: "No metadata provided" });
+    }
 
-    const uploadedPhotos = await Promise.all(
-      files.map(async (file, index) => {
-        const meta = metadata[index] || {};
-        const uploadResponse = await imagekit.upload({
-          file: file.buffer,
-          fileName: file.originalname,
-          folder: "/photos",
-        });
+    const metadataResult = photoMetadataArraySchema.safeParse(metadata);
+    if (!metadataResult.success) {
+      return res.status(400).json({
+        error: "Invalid metadata provided",
+        details: metadataResult.error.issues.map(i => i.message)
+      });
+    }
 
-        const insertResult = await pool.query(
-          `INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id) 
-           VALUES ($1, $2::jsonb, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
-           RETURNING id, title, tags, thumbnail_url as "thumbnailUrl", image_url as "imageUrl", created_at as "createdAt"`,
-          [
-            meta.title || "Untitled",
-            JSON.stringify(meta.tags || []),
-            meta.location || "",
-            meta.cameraDetails?.cameraname || "",
-            meta.cameraDetails?.iso || "",
-            meta.cameraDetails?.aperture || "",
-            meta.cameraDetails?.shutterspeed || "",
-            meta.cameraDetails?.lens || "",
-            uploadResponse.url,
-            uploadResponse.url,
-            req.user?.id
-          ]
-        );
-        return insertResult.rows[0];
-      })
-    );
+    const validMetadata = metadataResult.data;
+    const parsedJobIds = jobIds || [];
 
-    res.status(201).json({ photos: uploadedPhotos, message: "Uploaded Successfully" });
+    const jobs = validMetadata.map((meta, index) => {
+      const jobId = parsedJobIds[index];
+
+      return {
+        name: "uploadImage",
+        data: {
+          userId: req.user?.id,
+          imageUrl: meta.imageUrl,
+          metadata: meta,
+        },
+        opts: {
+          jobId,
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 2000,
+          },
+          removeOnComplete: {
+            age: 3600,
+            count: 1000,
+          },
+          removeOnFail: {
+            age: 24 * 3600,
+          },
+        },
+      };
+    });
+
+    await uploadQueue.addBulk(jobs);
+    return res.status(201).json({ message: "Uploading your Images", jobIds: parsedJobIds });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to upload photos" });
+  }
+});
+
+app.get("/u/photo/status", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const jobIds = (req.query.jobIds as string || "").split(",");
+    if (!jobIds[0]) return res.status(400).json({ error: "No job IDs provided" });
+
+    const statuses = await Promise.all(
+      jobIds.map(async (id) => {
+        const job = await uploadQueue.getJob(id);
+        if (!job) return { id, state: "not_found" };
+        const state = await job.getState();
+        return { id, state };
+      })
+    );
+
+    const allCompleted = statuses.every((s) => s.state === "completed");
+    const anyFailed = statuses.some((s) => s.state === "failed");
+
+    res.json({ statuses, allCompleted, anyFailed });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to check job status" });
   }
 });
 

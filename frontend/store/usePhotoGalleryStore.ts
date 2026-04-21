@@ -19,6 +19,7 @@ export type PhotoFromDB = {
 interface PhotoGalleryState {
   photos: PhotoFromDB[];
   setPhotos: (newBatch: PhotoFromDB[]) => void;
+  addPhotos: (newPhotos: PhotoFromDB[]) => void;
   resetPhotos: () => void;
 }
 
@@ -28,6 +29,11 @@ export const usePhotoGalleryStore = create<PhotoGalleryState>((set) => ({
   setPhotos: (newBatch) =>
     set(() => ({
       photos: newBatch,
+    })),
+
+  addPhotos: (newPhotos) =>
+    set((state) => ({
+      photos: [...state.photos, ...newPhotos],
     })),
 
   resetPhotos: () =>

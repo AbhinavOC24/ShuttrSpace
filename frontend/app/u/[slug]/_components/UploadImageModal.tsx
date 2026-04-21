@@ -13,6 +13,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
   const { uploadFiles } = useUploadFiles();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.files);
     const selectedFiles = Array.from(e.target.files || []);
     const newQueue = selectedFiles.map((file) => ({
       file,
@@ -228,7 +229,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                               e.target.value;
                             store.setUploadQueue(updated);
                           }}
-                          placeholder="Aperture"
+                          placeholder="Aperture (e.g. f/2.8)"
                           className="w-[125px] h-[33px] p-2 text-[14px] border-[0.5px] border-[#4e4e4e] rounded-[10px] text-white placeholder-[#777676] font-family-neue font-normal focus:outline-none transition-colors bg-transparent"
                         />
                         <input
@@ -244,7 +245,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                               e.target.value;
                             store.setUploadQueue(updated);
                           }}
-                          placeholder="ISO"
+                          placeholder="ISO (e.g. 100)"
                           className="w-[125px] h-[33px] p-2 text-[14px] border-[0.5px] border-[#4e4e4e] rounded-[10px] text-white placeholder-[#777676] font-family-neue font-normal focus:outline-none transition-colors bg-transparent"
                         />
                         <input
@@ -261,7 +262,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                             ].cameraDetails.shutterspeed = e.target.value;
                             store.setUploadQueue(updated);
                           }}
-                          placeholder="ShutterSpeed"
+                          placeholder="S-Speed (e.g. 1/1000)"
                           className="w-[125px] h-[33px] p-2 text-[14px] border-[0.5px] border-[#4e4e4e] rounded-[10px] text-white placeholder-[#777676] font-family-neue font-normal focus:outline-none transition-colors bg-transparent"
                         />
                       </div>
@@ -303,16 +304,14 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                               }
                               store.setUploadQueue(updated);
                             }}
-                            className={`${
-                              isSelected
+                            className={`${isSelected
                                 ? "bg-white text-black border-[0.5px] border-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.8)]"
                                 : "border-[#4d4d4d] text-white border-[0.5px] shadow-[inset_1px_1px_2px_rgba(255,255,255,0.3)]"
-                            } cursor-pointer gap-[6px] h-[30px] px-[10px] py-[5px] flex items-center rounded-[10px] transition-colors`}
+                              } cursor-pointer gap-[6px] h-[30px] px-[10px] py-[5px] flex items-center rounded-[10px] transition-colors`}
                           >
                             <div
-                              className={`w-[5px] h-[5px] rounded-full ${
-                                isSelected ? "bg-black" : "bg-white"
-                              }`}
+                              className={`w-[5px] h-[5px] rounded-full ${isSelected ? "bg-black" : "bg-white"
+                                }`}
                             ></div>
                             <span className="font-family-neue font-medium text-[14px]">
                               {tag}
@@ -354,8 +353,8 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ slug }) => {
                       {store.uploading
                         ? "Uploading..."
                         : store.currentIndex !== store.uploadQueue.length - 1
-                        ? "Next"
-                        : "Upload"}
+                          ? "Next"
+                          : "Upload"}
                     </button>
                   </div>
                 </div>

@@ -22,21 +22,20 @@ export const createUserProfileSchema = z.object({
   profilePic: z.string().optional(),
 });
 
-const cameraDetails = z.object({
-  cameraname: z.string().optional(),
-  lens: z.string().optional(),
-  aperture: z.string().optional(),
-  iso: z.string().optional(),
-  shutterspeed: z.string().optional(),
+const cameraDetailsSchema = z.object({
+  cameraname: z.string().max(100, "Camera name too long").optional(),
+  lens: z.string().max(150, "Lens description too long").optional(),
+  aperture: z.string().regex(/^f\/\d+(\.\d+)?$/, "Aperture must be in format 'f/X.X'").or(z.literal("")).optional(),
+  iso: z.string().regex(/^\d+$/, "ISO must be a number").or(z.literal("")).optional(),
+  shutterspeed: z.string().regex(/^(\d+\/\d+|\d+(\.\d+)?s)$/, "Shutterspeed must be '1/X' or 'Xs'").or(z.literal("")).optional(),
 });
 
 export const createPhotoSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  tags: z.array(z.string()).optional().default([]),
-  location: z.string().optional(),
-  cameraDetails: cameraDetails.optional(),
+  title: z.string().min(1, "Title is required").max(100, "Title too long").or(z.literal("")).optional().default("Untitled"),
+  tags: z.array(z.string().max(30)).max(10, "Too many tags").optional().default([]),
+  location: z.string().max(100, "Location too long").optional(),
+  cameraDetails: cameraDetailsSchema.optional(),
+  imageUrl: z.string().url("Invalid image URL"),
 });
 
-export const createPhotosArraySchema = z.object({
-  items: z.array(createPhotoSchema).min(1, "No photos provided"),
-});
+export const photoMetadataArraySchema = z.array(createPhotoSchema);

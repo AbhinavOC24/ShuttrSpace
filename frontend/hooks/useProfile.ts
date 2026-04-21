@@ -6,28 +6,15 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 export const useProfile = () => {
   const store = useProfileStore();
-  const { checkAuth } = useAuthStore();
+  const { isAuthenticated, userSlug } = useAuthStore();
   const { slug } = useParams();
 
   useEffect(() => {
     if (!slug) return;
 
     const init = async () => {
-      // Step 1: Always resolve auth first — get the current user's slug
-      let resolvedUserSlug: string | null = null;
-      try {
-        const authRes = await api.get("/u/getSlug");
-        resolvedUserSlug = authRes.data.slug ?? null;
-        // Sync the store so the rest of the app knows too
-        useAuthStore.setState({
-          isAuthenticated: true,
-          hasProfile: authRes.data.hasProfile,
-          userSlug: resolvedUserSlug,
-        });
-      } catch {
-        // Not logged in — that's fine, just a visitor
-        resolvedUserSlug = null;
-      }
+      // Step 1: Use auth state from store
+      const resolvedUserSlug = isAuthenticated ? userSlug : null;
 
       // Step 2: Fetch the profile
       try {
@@ -49,5 +36,5 @@ export const useProfile = () => {
     };
 
     init();
-  }, [slug]);
+  }, [slug, isAuthenticated, userSlug]);
 };
