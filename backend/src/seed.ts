@@ -38,15 +38,15 @@ async function main() {
     const totalPhotos = 100;
     console.log(`Generating ${totalPhotos} dummy photos...`);
 
-    let values = [];
-    let queryPlaceholders = [];
-    
+    const batchId = "00000000-0000-0000-0000-000000000000"; // Fixed UUID for seed data
+    let values: any[] = [];
+    let queryPlaceholders: string[] = [];
     for (let i = 0; i < totalPhotos; i++) {
-        const offset = i * 11;
+        const offset = i * 13;
         const thumbnailUrl = `https://picsum.photos/seed/${totalPhotos - i}/400/300`;
         const imageUrl = `https://picsum.photos/seed/${totalPhotos - i}/800/600`;
         
-        queryPlaceholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`);
+        queryPlaceholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12}, $${offset + 13})`);
         
         values.push(
             `Dummy Photo ${i + 1}`, // title
@@ -59,12 +59,14 @@ async function main() {
             "50mm", // lens
             thumbnailUrl, // thumbnail_url
             imageUrl, // image_url
-            userId // user_id
+            userId, // user_id
+            batchId, // batch_id
+            "completed" // status
         );
     }
 
     const insertQuery = `
-      INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id)
+      INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id, batch_id, status)
       VALUES ${queryPlaceholders.join(", ")}
     `;
 

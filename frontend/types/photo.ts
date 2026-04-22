@@ -18,7 +18,9 @@ export type PhotoFromDB = {
   uploaderName?: string;
   uploaderProfilePic?: string;
   uploaderSlug?: string;
-  isProcessing?: boolean;
+  isProcessing?: boolean; // We'll keep this for UI convenience
+  status?: 'preparing' | 'pending' | 'completed' | 'failed';
+  batch_id?: string;
 };
 
 export type PhotosFromUploadQueue = {

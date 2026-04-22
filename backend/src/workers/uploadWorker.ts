@@ -1,16 +1,17 @@
 import { Worker } from "bullmq";
 import { redis } from "../lib/redis";
 
-import { generateThumbnail, savePhoto } from "../utils/image";
+import { generateThumbnail, savePhoto, failPhoto } from "../utils/image";
 
 
 
 const worker = new Worker("uploadQueue", async (job) => {
-    const { userId, imageUrl, metadata } = job.data;
+    const { userId, photoId, imageUrl, metadata } = job.data;
     console.log(`[Worker] 🛠️ Processing job ${job.id} for userId: ${userId}...`);
 
     try {
         await savePhoto({
+            photoId,
             userId,
             imageUrl,
             thumbnailUrl: generateThumbnail(imageUrl),
@@ -19,6 +20,7 @@ const worker = new Worker("uploadQueue", async (job) => {
         return { success: true };
     } catch (error) {
         console.error(`[Worker] ❌ Error in job ${job.id}:`, error);
+        if (photoId) await failPhoto(photoId);
         throw error;
     }
 }, { connection: redis });

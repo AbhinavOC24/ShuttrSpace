@@ -13,9 +13,25 @@ export const useUploadFiles = () => {
 
     // Capture a local copy of the queue so we can clear the store immediately
     const queueToUpload = [...store.uploadQueue];
+    const batchId = crypto.randomUUID();
 
-    // ── INSTANT UI FEEDBACK ──
-    // Close modal and reset its state immediately so the user can continue browsing
+    // ── 0ms OPTIMISTIC UI FEEDBACK ──
+    const optimisticPreviews = queueToUpload.map((photo) => ({
+      id: Math.random(),
+      title: photo.title || "Untitled",
+      tags: photo.tags,
+      location: photo.location,
+      thumbnailUrl: URL.createObjectURL(photo.file),
+      imageUrl: "",
+      status: 'preparing' as const,
+      isOptimistic: true,
+      createdAt: new Date().toISOString(),
+    }));
+
+    // Instantly update the gallery in the UI (Reversed to match created_at DESC)
+    store.setGallery([...optimisticPreviews.reverse(), ...store.gallery]);
+
+    // Reset modal state immediately
     store.setuploadImageModalStatus(false);
     store.setUploadQueue([]);
     store.setCurrentIndex(0);
@@ -23,7 +39,6 @@ export const useUploadFiles = () => {
     try {
       const uploadedResults = await Promise.all(
         queueToUpload.map(async (photo) => {
-          // Get a fresh signature for each file
           const authRes = await api.get("/u/photo/uploadAuth");
           const { signature, token, expire, publicKey } = authRes.data;
 
@@ -41,11 +56,7 @@ export const useUploadFiles = () => {
             body: ikFormData,
           });
 
-          if (!ikRes.ok) {
-            const errorData = await ikRes.json();
-            console.error("ImageKit Error:", errorData);
-            throw new Error(`ImageKit upload failed: ${errorData.message}`);
-          }
+          if (!ikRes.ok) throw new Error("ImageKit upload failed");
           return await ikRes.json();
         })
       );
@@ -58,53 +69,43 @@ export const useUploadFiles = () => {
         imageUrl: uploadedResults[index].url,
       }));
 
-      const jobIds = queueToUpload.map(() => crypto.randomUUID());
-
-      const response = await api.post(`/u/photo/uploadPhotos`, {
+      // Send to backend — this swaps our local "Optimistic" rows for "DB Pending" rows
+      await api.post(`/u/photo/uploadPhotos`, {
         metadata,
-        jobIds,
+        batchId,
         slug,
       });
 
-      // ── OPTIMISTIC UI UPDATE ──
-      // Show images in gallery immediately using local previews while worker processes
-      const optimisticPhotos = queueToUpload.map((photo, index) => ({
-        id: Math.random(), // Temp ID
-        title: photo.title || "Untitled",
-        tags: photo.tags,
-        thumbnailUrl: URL.createObjectURL(photo.file),
-        imageUrl: uploadedResults[index].url,
-        createdAt: new Date().toISOString(),
-        isProcessing: true,
-      }));
+      // Refresh the gallery from the DB (the 'pending' rows now replace the local blobs)
+      const initialFetch = await api.get(`/u/photo/getPhotos/${slug}`);
+      store.setGallery(initialFetch.data.photos || []);
 
-      store.setGallery([...optimisticPhotos, ...store.gallery]);
+      const pollJobStatus = async () => {
+        const interval = setInterval(async () => {
+          try {
+            const statusRes = await api.get(`/u/photo/status/${batchId}`);
+            const { allSettled, allCompleted, anyFailed } = statusRes.data;
 
-      if (response.data.jobIds) {
-        const pollJobStatus = async () => {
-          const interval = setInterval(async () => {
-            try {
-              const statusRes = await api.get(`/u/photo/status?jobIds=${response.data.jobIds.join(",")}`);
-              if (statusRes.data.allCompleted) {
-                clearInterval(interval);
-                const photoRes = await api.get(`/u/photo/getPhotos/${slug}`);
-                store.setGallery(photoRes.data.photos || []);
+            if (allSettled) {
+              clearInterval(interval);
+              const photoRes = await api.get(`/u/photo/getPhotos/${slug}`);
+              store.setGallery(photoRes.data.photos || []);
+
+              if (allCompleted) {
                 toast.success("All images uploaded and processed!", { id: uploadToast });
-              } else if (statusRes.data.anyFailed) {
-                clearInterval(interval);
+              } else if (anyFailed) {
                 toast.error("Some images failed to process.", { id: uploadToast });
               }
-            } catch (error) {
-              clearInterval(interval);
-              console.error("Status polling failed", error);
             }
-          }, 2000);
-        };
-        pollJobStatus();
-      }
+          } catch (error) {
+            clearInterval(interval);
+          }
+        }, 2000);
+      };
+      pollJobStatus();
+
     } catch (error: any) {
-      const errMsg = error.response?.data?.error || "Failed to upload photos";
-      toast.error(errMsg, { id: uploadToast });
+      toast.error("Failed to upload photos", { id: uploadToast });
     } finally {
       store.setUploading(false);
     }

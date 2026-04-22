@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS photos (
     thumbnail_url TEXT NOT NULL,
     image_url TEXT NOT NULL,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    batch_id UUID,
+    status VARCHAR(20) DEFAULT 'completed',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

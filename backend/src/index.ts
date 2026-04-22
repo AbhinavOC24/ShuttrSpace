@@ -374,23 +374,48 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
 
     const incomingTags = Array.from(new Set(validMetadata.flatMap(meta => meta.tags || [])));
     if (incomingTags.length > 0) {
-      // 1. Fetch the user's current tags
+
       const userResult = await pool.query("SELECT tags FROM users WHERE id = $1", [req.user?.id]);
       const currentTags = userResult.rows[0]?.tags || [];
 
-      // 2. Merge the old and new tags using JavaScript Sets to remove duplicates
       const mergedTags = Array.from(new Set([...currentTags, ...incomingTags]));
 
-      // 3. Save the merged list back to the database with a simple update
       await pool.query("UPDATE users SET tags = $1::jsonb WHERE id = $2", [JSON.stringify(mergedTags), req.user?.id]);
     }
 
-    const jobs = validMetadata.map((meta, index) => {
-      const jobId = parsedJobIds[index];
+    const batchId = req.body.batchId || crypto.randomUUID();
+
+    const jobs = await Promise.all(validMetadata.map(async (meta, index) => {
+      const jobId = parsedJobIds[index] || crypto.randomUUID();
+
+      // NEW: Pre-insert the photo with 'pending' status
+      const photoResult = await pool.query(
+        `INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id, batch_id, status) 
+         VALUES ($1, $2::jsonb, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
+         RETURNING id`,
+        [
+          meta.title || "Untitled",
+          JSON.stringify(meta.tags || []),
+          meta.location || "",
+          meta.cameraDetails?.cameraname || "",
+          meta.cameraDetails?.iso || "",
+          meta.cameraDetails?.aperture || "",
+          meta.cameraDetails?.shutterspeed || "",
+          meta.cameraDetails?.lens || "",
+          "", // Thumbnail will be updated by worker
+          meta.imageUrl,
+          req.user?.id,
+          batchId,
+          "pending"
+        ]
+      );
+
+      const photoId = photoResult.rows[0].id;
 
       return {
         name: "uploadImage",
         data: {
+          photoId,
           userId: req.user?.id,
           imageUrl: meta.imageUrl,
           metadata: meta,
@@ -398,48 +423,38 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
         opts: {
           jobId,
           attempts: 3,
-          backoff: {
-            type: "exponential",
-            delay: 2000,
-          },
-          removeOnComplete: {
-            age: 3600,
-            count: 1000,
-          },
-          removeOnFail: {
-            age: 24 * 3600,
-          },
+          backoff: { type: "exponential", delay: 2000 },
+          removeOnComplete: true,
+          removeOnFail: false
         },
       };
-    });
+    }));
 
     await uploadQueue.addBulk(jobs);
     console.log(`[Queue] 🚀 Successfully queued ${jobs.length} upload jobs for userId: ${req.user?.id}`);
-    return res.status(201).json({ message: "Uploading your Images", jobIds: parsedJobIds });
+    return res.status(201).json({ message: "Uploading your Images", batchId });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to upload photos" });
   }
 });
 
-app.get("/u/photo/status", authenticateToken, async (req: Request, res: Response) => {
+app.get("/u/photo/status/:batchId", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const jobIds = (req.query.jobIds as string || "").split(",");
-    if (!jobIds[0]) return res.status(400).json({ error: "No job IDs provided" });
-
-    const statuses = await Promise.all(
-      jobIds.map(async (id) => {
-        const job = await uploadQueue.getJob(id);
-        if (!job) return { id, state: "not_found" };
-        const state = await job.getState();
-        return { id, state };
-      })
+    const { batchId } = req.params;
+    const result = await pool.query(
+      "SELECT id, status FROM photos WHERE batch_id = $1 AND user_id = $2",
+      [batchId, req.user?.id]
     );
 
-    const allCompleted = statuses.every((s) => s.state === "completed");
-    const anyFailed = statuses.some((s) => s.state === "failed");
+    const photos = result.rows;
+    if (photos.length === 0) return res.json({ allSettled: false, statuses: [] });
 
-    res.json({ statuses, allCompleted, anyFailed });
+    const allSettled = photos.every((p) => p.status === "completed" || p.status === "failed");
+    const allCompleted = photos.every((p) => p.status === "completed");
+    const anyFailed = photos.some((p) => p.status === "failed");
+
+    res.json({ allSettled, allCompleted, anyFailed, count: photos.length });
   } catch (error) {
     res.status(500).json({ error: "Failed to check job status" });
   }
@@ -453,7 +468,7 @@ app.get("/u/photo/getPhotos/:slug", async (req: Request, res: Response) => {
 
     const photosResult = await pool.query(
       `SELECT id, title, tags, thumbnail_url as "thumbnailUrl", image_url as "imageUrl", 
-              location, cameraname, lens, aperture, iso, shutterspeed, created_at as "createdAt"
+              location, cameraname, lens, aperture, iso, shutterspeed, status, batch_id, created_at as "createdAt"
        FROM photos WHERE user_id = $1 ORDER BY created_at DESC`,
       [userResult.rows[0].id]
     );

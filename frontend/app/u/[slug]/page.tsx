@@ -70,39 +70,64 @@ function ProfilePage() {
               {photosToShow.map((photo, index) => (
                 <div
                   key={photo.id || index}
-                  className={`relative mb-4 rounded-xl overflow-hidden cursor-pointer group border border-white/5 opacity-0 animate-fade-in-up ${photo.isProcessing ? "cursor-wait" : ""}`}
+                  className={`relative mb-4 rounded-xl overflow-hidden cursor-pointer group border border-white/5 opacity-0 animate-fade-in-up ${(photo.status === 'pending' || photo.status === 'preparing') ? "cursor-wait" : ""}`}
                   style={{ animationDelay: `${(index % 12) * 60}ms` }}
                   onClick={() => {
-                    if (photo.isProcessing) return;
+                    if (photo.status === 'pending' || photo.status === 'preparing') return;
                     store.setSelectedImage(photo);
                     store.setImageDetailModalStatus(true);
                   }}
                 >
                   {/* The image — zooms in on hover */}
                   <Image
-                    src={photo.thumbnailUrl || ""}
+                    src={photo.thumbnailUrl || photo.imageUrl || ""}
                     alt={photo.title || `Uploaded ${index}`}
                     width={500}
                     height={500}
                     unoptimized
-                    className={`w-full h-auto object-cover transition-all duration-700 ease-out ${photo.isProcessing ? "opacity-60 grayscale blur-sm" : "group-hover:scale-110"}`}
+                    className={`w-full h-auto object-cover transition-all duration-700 ease-out ${
+                      photo.status === 'preparing' ? "blur-xl scale-110" : 
+                      photo.status === 'pending' ? "opacity-60 grayscale blur-sm" : 
+                      photo.status === 'failed' ? "opacity-50 grayscale contrast-50" : 
+                      "group-hover:scale-110"
+                    }`}
                   />
 
-                  {/* Processing Overlay */}
-                  {photo.isProcessing && (
+                  {/* Preparing Overlay */}
+                  {photo.status === 'preparing' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 backdrop-blur-md">
+                      <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin mb-2" />
+                      <p className="text-[10px] font-family-neue font-medium tracking-[0.2em] uppercase text-white">Preparing</p>
+                    </div>
+                  )}
+
+                  {/* Pending/Processing Overlay */}
+                  {photo.status === 'pending' && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
                       <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin mb-2" />
                       <p className="text-[10px] font-family-neue font-medium tracking-[0.2em] uppercase text-white/80">Processing</p>
                     </div>
                   )}
 
+                  {/* Failed Overlay */}
+                  {photo.status === 'failed' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/40 backdrop-blur-[1px]">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      <p className="text-[10px] font-family-neue font-medium tracking-[0.2em] uppercase text-white">Upload Failed</p>
+                    </div>
+                  )}
+
                   {/* Gradient overlay — fades in on hover */}
-                  {!photo.isProcessing && (
+                  {photo.status === 'completed' && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 ease-out" />
                   )}
 
                   {/* Title + location — slides up on hover */}
-                  {!photo.isProcessing && (
+                  {photo.status === 'completed' && (
                     <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-400 ease-out">
                       {photo.title && (
                         <p className="text-white font-family-helvetica font-medium text-sm leading-tight truncate">
