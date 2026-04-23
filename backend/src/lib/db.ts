@@ -11,14 +11,10 @@ const pool = new Pool({
 
 export const initializeDatabase = async () => {
   const dbName = "iso";
-  
-  // 1. First, combine a connection string to the default 'postgres' database
-  // We take the existing DATABASE_URL and replace the database name at the end
   const baseUrl = process.env.DATABASE_URL?.substring(0, process.env.DATABASE_URL.lastIndexOf("/") + 1);
   const postgresPool = new Pool({ connectionString: `${baseUrl}postgres` });
 
   try {
-    // 2. Check if the database exists
     const res = await postgresPool.query("SELECT 1 FROM pg_database WHERE datname = $1", [dbName]);
     
     if (res.rowCount === 0) {
@@ -32,7 +28,6 @@ export const initializeDatabase = async () => {
     await postgresPool.end();
   }
 
-  // 3. Now initialize the schema in the actual pool
   try {
     const schemaPath = path.join(__dirname, "../../schema.sql");
     const schemaSql = fs.readFileSync(schemaPath, "utf-8");

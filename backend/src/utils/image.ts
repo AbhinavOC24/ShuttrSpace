@@ -1,9 +1,6 @@
 import imagekit from "../lib/imagekit";
 import pool from "../lib/db";
 
-
-
-
 export const generateThumbnail = (originalUrl: string): string => {
   const thumbnailUrl = `${originalUrl}?tr=w-400,q-70,f-webp`;
   return thumbnailUrl;
@@ -11,7 +8,7 @@ export const generateThumbnail = (originalUrl: string): string => {
 
 type SavePhotoParams = {
   userId: number;
-  photoId?: number; // Make it optional for backward compatibility
+  photoId?: number;
   imageUrl: string;
   thumbnailUrl: string;
   metadata: any;
@@ -19,7 +16,6 @@ type SavePhotoParams = {
 
 export const savePhoto = async ({ userId, photoId, imageUrl, thumbnailUrl, metadata }: SavePhotoParams) => {
   if (photoId) {
-    // NEW: Update existing pending record
     const result = await pool.query(
       `UPDATE photos SET 
         thumbnail_url = $1, 
@@ -34,7 +30,6 @@ export const savePhoto = async ({ userId, photoId, imageUrl, thumbnailUrl, metad
     return photo;
   }
 
-  // Fallback for cases without pre-insertion
   const result = await pool.query(
     `INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id, status) 
      VALUES ($1, $2::jsonb, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'completed') 

@@ -11,11 +11,9 @@ export const useUploadFiles = () => {
 
     const uploadToast = toast.loading(`Uploading ${store.uploadQueue.length} photo${store.uploadQueue.length > 1 ? "s" : ""}…`);
 
-    // Capture a local copy of the queue so we can clear the store immediately
     const queueToUpload = [...store.uploadQueue];
     const batchId = crypto.randomUUID();
 
-    // ── 0ms OPTIMISTIC UI FEEDBACK ──
     const optimisticPreviews = queueToUpload.map((photo) => ({
       id: Math.random(),
       title: photo.title || "Untitled",
@@ -28,10 +26,8 @@ export const useUploadFiles = () => {
       createdAt: new Date().toISOString(),
     }));
 
-    // Instantly update the gallery in the UI (Reversed to match created_at DESC)
     store.setGallery([...optimisticPreviews.reverse(), ...store.gallery]);
 
-    // Reset modal state immediately
     store.setuploadImageModalStatus(false);
     store.setUploadQueue([]);
     store.setCurrentIndex(0);
@@ -69,14 +65,12 @@ export const useUploadFiles = () => {
         imageUrl: uploadedResults[index].url,
       }));
 
-      // Send to backend — this swaps our local "Optimistic" rows for "DB Pending" rows
       await api.post(`/u/photo/uploadPhotos`, {
         metadata,
         batchId,
         slug,
       });
 
-      // Refresh the gallery from the DB (the 'pending' rows now replace the local blobs)
       const initialFetch = await api.get(`/u/photo/getPhotos/${slug}`);
       store.setGallery(initialFetch.data.photos || []);
 

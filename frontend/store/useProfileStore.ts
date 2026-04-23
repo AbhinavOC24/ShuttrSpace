@@ -2,9 +2,7 @@ import { create } from "zustand";
 import { UserProfile } from "@/types/user";
 import { PhotoFromDB, PhotosFromUploadQueue } from "@/types/photo";
 
-// Re-export for any modules relying on these definitions being here (temporary backward compatibility)
 export type { UserProfile, PhotosFromUploadQueue, PhotoFromDB };
-
 
 interface ProfileState {
   userProfile: UserProfile | null;

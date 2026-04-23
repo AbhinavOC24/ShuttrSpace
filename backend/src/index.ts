@@ -13,14 +13,8 @@ import { signupSchema, loginSchema, createUserProfileSchema, photoMetadataArrayS
 import { initializeDatabase } from "./lib/db";
 import { uploadQueue } from "./queue/uploadQueue";
 
-
-
-
 dotenv.config();
 
-/**
- *  EXPRESS SETUP
- */
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
@@ -28,27 +22,20 @@ app.use(cookieParser());
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 
-/**
- * LOGGING MIDDLEWARE
- */
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-/**
- *  AUTH MIDDLEWARE & UTILS
- */
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // max 20 requests per IP
+  windowMs: 15 * 60 * 1000,
+  max: 20,
   message: { error: "Too many auth requests, please try again later." }
 });
 
 const generateRefreshToken = async (userId: number) => {
   const rawToken = crypto.randomBytes(40).toString("hex");
   const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-  // 7 days expiry
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   await pool.query(
@@ -58,9 +45,6 @@ const generateRefreshToken = async (userId: number) => {
   return rawToken;
 };
 
-/**
- *  AUTH MIDDLEWARE
- */
 interface AuthRequest extends Request {
   user?: {
     id: number;
@@ -82,14 +66,7 @@ const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) 
   });
 };
 
-/**
- *  MULTER SETUP (FOR BACKEND UPLOAD)
- */
 const upload = multer({ storage: multer.memoryStorage() });
-
-/**
- *  ROUTES - AUTH
- */
 
 app.post("/u/auth/signup", authLimiter, async (req: Request, res: Response) => {
   try {
@@ -169,36 +146,29 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      // Token doesn't exist at all (or was completely deleted).
       res.clearCookie("refresh_token");
       return res.status(403).json({ error: "Invalid refresh token" });
     }
 
     const tokenData = result.rows[0];
 
-    // Token Reuse Detection
     if (tokenData.is_revoked) {
-      // 🚨 An old, revoked token was used. Possible credential compromise!
       await pool.query("DELETE FROM refresh_tokens WHERE user_id = $1", [tokenData.user_id]);
       res.clearCookie("refresh_token");
       return res.status(403).json({ error: "Token reuse detected. All sessions revoked." });
     }
 
-    // Expiry Check
     if (new Date() > new Date(tokenData.expires_at)) {
       await pool.query("DELETE FROM refresh_tokens WHERE id = $1", [tokenData.id]);
       res.clearCookie("refresh_token");
       return res.status(403).json({ error: "Refresh token expired" });
     }
 
-    // Valid: Rotate the token
     await pool.query("UPDATE refresh_tokens SET is_revoked = true WHERE id = $1", [tokenData.id]);
 
-    // Get user details
     const userResult = await pool.query("SELECT email, slug FROM users WHERE id = $1", [tokenData.user_id]);
     const user = userResult.rows[0];
 
-    // Issue New Tokens
     const newAccessToken = jwt.sign({ id: tokenData.user_id, email: user.email, slug: user.slug }, JWT_SECRET, { expiresIn: "15m" });
     const newRawRefreshToken = await generateRefreshToken(tokenData.user_id);
 
@@ -268,12 +238,10 @@ app.get("/u/getSlug", authenticateToken, async (req: AuthRequest, res: Response)
 
 app.post("/u/createProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
   try {
-    // If tags were sent as a JSON string (typical for FormData), parse them
     if (typeof req.body.tags === 'string') {
       try {
         req.body.tags = JSON.parse(req.body.tags);
       } catch (e) {
-        // Fallback for non-JSON strings
         req.body.tags = req.body.tags.split(',').map((t: string) => t.trim());
       }
     }
@@ -341,10 +309,6 @@ app.put("/u/updateProfile", authenticateToken, upload.single("profilePic"), asyn
   }
 });
 
-/**
- *  ROUTES - PHOTOS & UPLOAD
- */
-
 app.get("/u/photo/uploadAuth", authenticateToken, (req, res) => {
   const authParams = imagekit.getAuthenticationParameters();
   res.send({
@@ -388,7 +352,6 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
     const jobs = await Promise.all(validMetadata.map(async (meta, index) => {
       const jobId = parsedJobIds[index] || crypto.randomUUID();
 
-      // NEW: Pre-insert the photo with 'pending' status
       const photoResult = await pool.query(
         `INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id, batch_id, status) 
          VALUES ($1, $2::jsonb, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
@@ -402,7 +365,7 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
           meta.cameraDetails?.aperture || "",
           meta.cameraDetails?.shutterspeed || "",
           meta.cameraDetails?.lens || "",
-          "", // Thumbnail will be updated by worker
+          "",
           meta.imageUrl,
           req.user?.id,
           batchId,
@@ -431,7 +394,6 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
     }));
 
     await uploadQueue.addBulk(jobs);
-    console.log(`[Queue] 🚀 Successfully queued ${jobs.length} upload jobs for userId: ${req.user?.id}`);
     return res.status(201).json({ message: "Uploading your Images", batchId });
   } catch (error) {
     console.error(error);
@@ -498,11 +460,7 @@ app.get("/u/photo/getInfinitePhotos", async (req: Request, res: Response) => {
   }
 });
 
-/**
- *  SERVER START
- */
 const PORT = process.env.BACKEND_PORT || 8000;
-
 
 const startServer = async () => {
   await initializeDatabase();

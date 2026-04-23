@@ -1,6 +1,3 @@
--- ShuttrSpace Database Schema
--- Run this in your PostgreSQL instance to initialize the tables
-
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -45,7 +42,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Optional: Create some indexes for faster querying
 CREATE INDEX IF NOT EXISTS idx_users_slug ON users(slug);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_photos_user_id ON photos(user_id);
