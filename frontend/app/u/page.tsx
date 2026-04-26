@@ -81,7 +81,7 @@ const LoginPage = () => {
 
   if (!isMounted || isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <div className="min-h-screen flex items-center justify-center bg-black text-white translate-y-[-10%]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
           <p className="text-white/30 text-xs uppercase tracking-widest font-medium">Loading profile...</p>
@@ -95,7 +95,7 @@ const LoginPage = () => {
   const labelClass = "block text-[11px] uppercase tracking-widest text-white/30 font-semibold mb-2";
 
   return (
-    <div className="overflow-hidden flex items-center justify-center min-h-screen bg-black p-4 sm:p-6 lg:p-8">
+    <div className="fixed inset-0 top-[72px] overflow-hidden flex items-center justify-center bg-black p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-5xl h-fit min-h-[620px] overflow-hidden flex flex-col md:flex-row bg-[#111] rounded-[32px] shadow-2xl border border-white/8">
 
         {/* Left — visual panel, unchanged */}

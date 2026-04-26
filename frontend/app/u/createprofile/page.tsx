@@ -104,7 +104,7 @@ const CreateProfilePage = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden flex items-center justify-center bg-black p-4 sm:p-6 translate-y-[-4%]">
+    <div className="fixed inset-0 top-[72px] overflow-hidden flex items-center justify-center bg-black p-4 sm:p-6 translate-y-[-4%]">
       <style>{`
         html, body {
           overflow: hidden !important;
