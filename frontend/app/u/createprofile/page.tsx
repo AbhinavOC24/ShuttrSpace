@@ -57,7 +57,7 @@ const CreateProfilePage = () => {
     try {
       console.log("Submitting profile to:", api.defaults.baseURL + "/u/createProfile");
       const submissionData = new FormData();
-      
+
       // Add text fields
       Object.entries(formData).forEach(([key, value]) => {
         if (Array.isArray(value)) {
@@ -72,7 +72,7 @@ const CreateProfilePage = () => {
       if (profileFile) {
         submissionData.append("profilePic", profileFile);
       }
-      
+
       const res = await api.post(
         `/u/createProfile`,
         submissionData,
@@ -104,8 +104,23 @@ const CreateProfilePage = () => {
   };
 
   return (
-    <div className="overflow-hidden flex items-center justify-center min-h-screen bg-black p-4 sm:p-6">
-      <div className="w-full max-w-5xl h-fit min-h-[610px] flex flex-col md:flex-row bg-[#151515] rounded-[40px] relative border border-gray-800 shadow-2xl overflow-hidden">
+    <div className="h-screen overflow-hidden flex items-center justify-center bg-black p-4 sm:p-6 translate-y-[-4%]">
+      <style>{`
+        html, body {
+          overflow: hidden !important;
+          height: 100vh !important;
+          width: 100vw !important;
+          position: fixed !important;
+        }
+        ::-webkit-scrollbar {
+          display: none !important;
+        }
+        * {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      <div className="w-full max-w-5xl h-fit min-h-[640px] flex flex-col md:flex-row bg-[#0D0D0D] rounded-[40px] relative border border-white/5 shadow-2xl overflow-hidden">
         {page > 1 && (
           <button
             onClick={previousPage}
@@ -121,19 +136,25 @@ const CreateProfilePage = () => {
           <LeftPanel />
         </div>
 
-        <div className="flex-1 relative p-6 sm:p-12 flex flex-col justify-between">
-          <div className="flex flex-col gap-8 w-full max-w-md mx-auto">
+        <div className="flex-1 relative p-6 sm:p-10 flex flex-col justify-between">
+          <div className="flex flex-col gap-6 w-full max-w-md mx-auto md:ml-16 md:mr-auto">
             {page === 1 ? (
-              <>
+              <div className="flex flex-col gap-8">
                 <HeroSection />
                 <CreatorFeatures />
-              </>
+              </div>
             ) : (
-              <ProfileForm />
+              <div className="flex flex-col gap-5 py-2">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-2xl font-family-helvetica font-bold tracking-tight">Complete your profile</h2>
+                  <p className="text-white/40 text-xs font-family-neue">Tell the world who you are</p>
+                </div>
+                <ProfileForm />
+              </div>
             )}
           </div>
 
-          <div className="mt-12 flex justify-end -mr-6 sm:-mr-12 -mb-6 sm:-mb-12">
+          <div className="mt-8 flex justify-end -mr-6 sm:-mr-10 -mb-6 sm:-mb-10">
             <button
               onClick={handleButtonClick}
               disabled={loading}

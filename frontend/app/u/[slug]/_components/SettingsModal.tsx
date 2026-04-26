@@ -4,6 +4,8 @@ import api from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useProfileStore } from "@/store/useProfileStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -17,6 +19,8 @@ const labelClass = "block text-[11px] uppercase tracking-widest text-white/30 fo
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const store = useProfileStore();
+  const authStore = useAuthStore();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
@@ -110,6 +114,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       toast.error(err.response?.data?.error || "Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (window.confirm("Are you sure you want to logout?")) {
+      await authStore.logout();
+      onClose();
+      router.push("/");
     }
   };
 
@@ -313,6 +325,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/50 hover:text-white hover:border-white/20 text-sm font-medium transition-all duration-200"
                 >
                   Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex-1 py-2.5 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Logout
                 </button>
                 <button
                   type="submit"

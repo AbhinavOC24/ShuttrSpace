@@ -2,8 +2,6 @@
 
 **Iso** is a full-stack, portfolio-grade photography platform. Photographers can easily upload, manage, and share their work, while general users can explore an infinite-scroll gallery of high-resolution images. 
 
-This project was recently transitioned to a robust, highly optimized Web2 architecture to prioritize speed, simplicity, and ease of deployment.
-
 ---
 
 ## High-Level Design (HLD) & Architecture

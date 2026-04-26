@@ -186,7 +186,7 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/logout", async (req: Request, res: Response) => {
+app.post("/u/auth/logout", async (req: Request, res: Response) => {
   try {
     const rawToken = req.cookies.refresh_token;
     if (rawToken) {

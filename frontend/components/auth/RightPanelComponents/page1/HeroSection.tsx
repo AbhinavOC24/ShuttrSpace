@@ -5,7 +5,7 @@ const HeroSection = () => (
       Secured Forever
     </div>
     <div className="w-[308px] font-family-neue font-medium leading-[14px] text-base">
-      Publish, protect, and showcase — without middlemen or loss of control.
+      Create, publish and showcase your work with complete professionalism.
     </div>
   </>
 );

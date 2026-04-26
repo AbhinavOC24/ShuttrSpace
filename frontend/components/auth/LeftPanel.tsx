@@ -1,6 +1,6 @@
 import Image from "next/image";
 const LeftPanel = () => (
-  <div className="relative w-[490px] h-full rounded-5xl overflow-clip">
+  <div className="relative w-[490px] h-full overflow-hidden">
     <Image
       src="/login_image.jpg"
       alt="login image"

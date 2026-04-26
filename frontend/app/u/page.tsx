@@ -21,7 +21,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    
+
     const checkSession = async () => {
       const authenticated = await checkAuth();
       if (authenticated && useAuthStore.getState().userSlug) {
@@ -104,8 +104,8 @@ const LoginPage = () => {
         </div>
 
         {/* Right — auth form */}
-        <div className="flex-1 flex flex-col justify-center px-10 py-12 text-white">
-          <div className="max-w-sm w-full mx-auto">
+        <div className="flex-1 flex flex-col justify-center items-center px-10 text-white">
+          <div className="max-w-sm w-full">
 
             {/* Brand mark on mobile */}
             <p className="md:hidden text-white/30 text-xs uppercase tracking-widest font-semibold mb-8">
@@ -123,7 +123,7 @@ const LoginPage = () => {
             </p>
 
             {/* Form fields */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 ">
               {!isLoginMode && (
                 <div>
                   <label className={labelClass}>Full Name</label>
