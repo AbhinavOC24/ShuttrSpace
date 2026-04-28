@@ -2,7 +2,7 @@
 
 **Iso** is a full-stack, portfolio-grade photography platform. Photographers can easily upload, manage, and share their work, while general users can explore an Pinterest-like infinite-scroll gallery of high-resolution images.
 
-![Iso Preview](./Branding.jpg)
+![Iso Preview](./Banner.jpg)
 
 ---
 
