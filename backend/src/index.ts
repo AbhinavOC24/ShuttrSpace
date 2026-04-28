@@ -1,17 +1,20 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import multer from "multer";
 import pool from "./lib/db";
 import imagekit from "./lib/imagekit";
 import cookieParser from "cookie-parser";
-import crypto from "crypto";
-import rateLimit from "express-rate-limit";
+import { randomUUID } from "crypto";
 import { signupSchema, loginSchema, createUserProfileSchema, photoMetadataArraySchema } from "./lib/schemas";
 import { initializeDatabase } from "./lib/db";
 import { uploadQueue } from "./queue/uploadQueue";
+import { authenticateToken } from "./middleware/auth";
+import { authLimiter } from "./middleware/rateLimiters";
+import { upload } from "./middleware/upload";
+import { generateAccessToken, generateRefreshToken, hashRefreshToken } from "./services/authService";
+import { AuthRequest } from "./types/auth";
+import { clearRefreshTokenCookie, setRefreshTokenCookie } from "./utils/authCookies";
 
 dotenv.config();
 
@@ -20,53 +23,10 @@ app.use(express.json());
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser());
 
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
-
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { error: "Too many auth requests, please try again later." }
-});
-
-const generateRefreshToken = async (userId: number) => {
-  const rawToken = crypto.randomBytes(40).toString("hex");
-  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-  await pool.query(
-    "INSERT INTO refresh_tokens (user_id, hashed_token, expires_at) VALUES ($1, $2, $3)",
-    [userId, hashedToken, expiresAt]
-  );
-  return rawToken;
-};
-
-interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    slug: string;
-  };
-}
-
-const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.status(401).json({ error: "Access denied. Token missing." });
-
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.status(401).json({ error: "Invalid or expired token." });
-    req.user = user;
-    next();
-  });
-};
-
-const upload = multer({ storage: multer.memoryStorage() });
 
 app.post("/u/auth/signup", authLimiter, async (req: Request, res: Response) => {
   try {
@@ -87,15 +47,10 @@ app.post("/u/auth/signup", authLimiter, async (req: Request, res: Response) => {
     );
 
     const newUser = result.rows[0];
-    const accessToken = jwt.sign({ id: newUser.id, email, slug: newUser.slug }, JWT_SECRET, { expiresIn: "15m" });
+    const accessToken = generateAccessToken({ id: newUser.id, email, slug: newUser.slug });
     const rawRefreshToken = await generateRefreshToken(newUser.id);
 
-    res.cookie("refresh_token", rawRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setRefreshTokenCookie(res, rawRefreshToken);
 
     res.status(201).json({ message: "Signup successful", token: accessToken, slug: newUser.slug, hasProfile: false });
   } catch (error) {
@@ -117,15 +72,10 @@ app.post("/u/auth/login", authLimiter, async (req: Request, res: Response) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(401).json({ error: "Invalid email or password" });
 
-    const accessToken = jwt.sign({ id: user.id, email, slug: user.slug }, JWT_SECRET, { expiresIn: "15m" });
+    const accessToken = generateAccessToken({ id: user.id, email, slug: user.slug });
     const rawRefreshToken = await generateRefreshToken(user.id);
 
-    res.cookie("refresh_token", rawRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setRefreshTokenCookie(res, rawRefreshToken);
 
     res.json({ message: "Login successful", token: accessToken, slug: user.slug, hasProfile: !!user.bio });
   } catch (error) {
@@ -139,14 +89,14 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
     const rawRefreshToken = req.cookies.refresh_token;
     if (!rawRefreshToken) return res.status(401).json({ error: "No refresh token provided" });
 
-    const hashedToken = crypto.createHash("sha256").update(rawRefreshToken).digest("hex");
+    const hashedToken = hashRefreshToken(rawRefreshToken);
     const result = await pool.query(
       "SELECT id, user_id, is_revoked, expires_at FROM refresh_tokens WHERE hashed_token = $1",
       [hashedToken]
     );
 
     if (result.rows.length === 0) {
-      res.clearCookie("refresh_token");
+      clearRefreshTokenCookie(res);
       return res.status(403).json({ error: "Invalid refresh token" });
     }
 
@@ -154,13 +104,13 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
 
     if (tokenData.is_revoked) {
       await pool.query("DELETE FROM refresh_tokens WHERE user_id = $1", [tokenData.user_id]);
-      res.clearCookie("refresh_token");
+      clearRefreshTokenCookie(res);
       return res.status(403).json({ error: "Token reuse detected. All sessions revoked." });
     }
 
     if (new Date() > new Date(tokenData.expires_at)) {
       await pool.query("DELETE FROM refresh_tokens WHERE id = $1", [tokenData.id]);
-      res.clearCookie("refresh_token");
+      clearRefreshTokenCookie(res);
       return res.status(403).json({ error: "Refresh token expired" });
     }
 
@@ -169,15 +119,10 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
     const userResult = await pool.query("SELECT email, slug FROM users WHERE id = $1", [tokenData.user_id]);
     const user = userResult.rows[0];
 
-    const newAccessToken = jwt.sign({ id: tokenData.user_id, email: user.email, slug: user.slug }, JWT_SECRET, { expiresIn: "15m" });
+    const newAccessToken = generateAccessToken({ id: tokenData.user_id, email: user.email, slug: user.slug });
     const newRawRefreshToken = await generateRefreshToken(tokenData.user_id);
 
-    res.cookie("refresh_token", newRawRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setRefreshTokenCookie(res, newRawRefreshToken);
 
     res.json({ token: newAccessToken });
   } catch (err) {
@@ -190,18 +135,14 @@ app.post("/u/auth/logout", async (req: Request, res: Response) => {
   try {
     const rawToken = req.cookies.refresh_token;
     if (rawToken) {
-      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const hashedToken = hashRefreshToken(rawToken);
       await pool.query("DELETE FROM refresh_tokens WHERE hashed_token = $1", [hashedToken]);
     }
   } catch (error) {
     console.error(error);
   }
 
-  res.clearCookie("refresh_token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  });
+  clearRefreshTokenCookie(res);
   res.json({ message: "Logout successful" });
 });
 
@@ -347,10 +288,10 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
       await pool.query("UPDATE users SET tags = $1::jsonb WHERE id = $2", [JSON.stringify(mergedTags), req.user?.id]);
     }
 
-    const batchId = req.body.batchId || crypto.randomUUID();
+    const batchId = req.body.batchId || randomUUID();
 
     const jobs = await Promise.all(validMetadata.map(async (meta, index) => {
-      const jobId = parsedJobIds[index] || crypto.randomUUID();
+      const jobId = parsedJobIds[index] || randomUUID();
 
       const photoResult = await pool.query(
         `INSERT INTO photos (title, tags, location, cameraname, iso, aperture, shutterspeed, lens, thumbnail_url, image_url, user_id, batch_id, status) 
