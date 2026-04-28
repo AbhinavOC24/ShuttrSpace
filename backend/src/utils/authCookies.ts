@@ -4,7 +4,7 @@ import { REFRESH_TOKEN_MAX_AGE_MS } from "../config/auth";
 const refreshTokenCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  sameSite: "lax",
   maxAge: REFRESH_TOKEN_MAX_AGE_MS,
 } as const;
 

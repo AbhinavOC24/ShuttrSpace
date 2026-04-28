@@ -95,7 +95,7 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.REPO }}/frontend:latest,ghcr.io/${{ env.REPO }}/frontend:${{ github.sha }}
           build-args: |
-            NEXT_PUBLIC_BACKEND_URL=http://${{ secrets.EC2_HOST }}:8000
+            NEXT_PUBLIC_BACKEND_URL=https://iso-app.duckdns.org
 
   deploy:
     runs-on: ubuntu-latest
