@@ -25,7 +25,7 @@ export default function InfiniteScrollGallery() {
     try {
       setLoading(true);
       const res = await api.get(
-        `/u/photo/getInfinitePhotos?skip=${page * 20}&take=20`
+        `/api/photo/getInfinitePhotos?skip=${page * 20}&take=20`
       );
 
       const newBatch = res.data;

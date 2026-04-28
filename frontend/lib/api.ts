@@ -59,7 +59,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await api.post("/u/auth/refresh");
+        const { data } = await api.post("/api/auth/refresh");
         if (data.token) {
           localStorage.setItem("token", data.token);
           setAuthHeader(data.token);

@@ -35,7 +35,7 @@ export const useUploadFiles = () => {
     try {
       const uploadedResults = await Promise.all(
         queueToUpload.map(async (photo) => {
-          const authRes = await api.get("/u/photo/uploadAuth");
+          const authRes = await api.get("/api/photo/uploadAuth");
           const { signature, token, expire, publicKey } = authRes.data;
 
           const ikFormData = new FormData();
@@ -65,24 +65,24 @@ export const useUploadFiles = () => {
         imageUrl: uploadedResults[index].url,
       }));
 
-      await api.post(`/u/photo/uploadPhotos`, {
+      await api.post(`/api/photo/uploadPhotos`, {
         metadata,
         batchId,
         slug,
       });
 
-      const initialFetch = await api.get(`/u/photo/getPhotos/${slug}`);
+      const initialFetch = await api.get(`/api/photo/getPhotos/${slug}`);
       store.setGallery(initialFetch.data.photos || []);
 
       const pollJobStatus = async () => {
         const interval = setInterval(async () => {
           try {
-            const statusRes = await api.get(`/u/photo/status/${batchId}`);
+            const statusRes = await api.get(`/api/photo/status/${batchId}`);
             const { allSettled, allCompleted, anyFailed } = statusRes.data;
 
             if (allSettled) {
               clearInterval(interval);
-              const photoRes = await api.get(`/u/photo/getPhotos/${slug}`);
+              const photoRes = await api.get(`/api/photo/getPhotos/${slug}`);
               store.setGallery(photoRes.data.photos || []);
 
               if (allCompleted) {

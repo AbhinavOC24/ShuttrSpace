@@ -18,7 +18,7 @@ export const useProfile = () => {
 
       // Step 2: Fetch the profile
       try {
-        const res = await api.get(`/u/getProfile/${slug}`);
+        const res = await api.get(`/api/getProfile/${slug}`);
         if (res.data.profile) {
           store.setUserProfile(res.data.profile);
 
@@ -26,7 +26,7 @@ export const useProfile = () => {
           console.log(`Permission Check: resolvedUserSlug(${resolvedUserSlug}) vs profileSlug(${res.data.profile.slug}) -> ${isOwner}`);
           store.setCanEdit(isOwner);
 
-          const photoRes = await api.get(`/u/photo/getPhotos/${slug}`);
+          const photoRes = await api.get(`/api/photo/getPhotos/${slug}`);
           store.setGallery(photoRes.data.photos || []);
         }
       } catch (err: any) {

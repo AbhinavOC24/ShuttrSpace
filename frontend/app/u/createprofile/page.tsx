@@ -55,7 +55,7 @@ const CreateProfilePage = () => {
 
     setLoading(true);
     try {
-      console.log("Submitting profile to:", api.defaults.baseURL + "/u/createProfile");
+      console.log("Submitting profile to:", api.defaults.baseURL + "/api/createProfile");
       const submissionData = new FormData();
 
       // Add text fields
@@ -74,7 +74,7 @@ const CreateProfilePage = () => {
       }
 
       const res = await api.post(
-        `/u/createProfile`,
+        `/api/createProfile`,
         submissionData,
         {
           headers: {

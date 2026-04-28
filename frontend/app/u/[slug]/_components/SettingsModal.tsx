@@ -91,7 +91,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         submissionData.append("profilePic", profileFile);
       }
 
-      const res = await api.put(`/u/updateProfile`, submissionData, {
+      const res = await api.put(`/api/updateProfile`, submissionData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

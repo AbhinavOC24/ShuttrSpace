@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   checkAuth: () => {
     console.log("DEBUG: Starting checkAuth...");
-    return api.get(`/u/getSlug`)
+    return api.get(`/api/getSlug`)
       .then(res => {
          console.log("DEBUG: checkAuth success!", res.data);
          set({ isAuthenticated: true, hasProfile: res.data.hasProfile, userSlug: res.data.slug });
@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: (credentials) => {
     set({ loading: true, authError: null });
-    return api.post(`/u/auth/login`, credentials)
+    return api.post(`/api/auth/login`, credentials)
       .then(({ data }) => {
         localStorage.setItem("token", data.token);
         setAuthHeader(data.token);
@@ -127,7 +127,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signup: (credentials) => {
     set({ loading: true, authError: null });
-    return api.post(`/u/auth/signup`, credentials)
+    return api.post(`/api/auth/signup`, credentials)
       .then(({ data }) => {
         localStorage.setItem("token", data.token);
         setAuthHeader(data.token);
@@ -148,7 +148,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   logout: async () => {
     try {
-      await api.post("/u/auth/logout");
+      await api.post("/api/auth/logout");
     } catch (e) {
       console.error("Logout failed on backend", e);
     }

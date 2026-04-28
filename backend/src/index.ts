@@ -28,7 +28,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/u/auth/signup", authLimiter, async (req: Request, res: Response) => {
+app.post("/api/auth/signup", authLimiter, async (req: Request, res: Response) => {
   try {
     const signupInfo = signupSchema.safeParse(req.body);
     if (!signupInfo.success) return res.status(400).json({ error: signupInfo.error.issues[0].message });
@@ -59,7 +59,7 @@ app.post("/u/auth/signup", authLimiter, async (req: Request, res: Response) => {
   }
 });
 
-app.post("/u/auth/login", authLimiter, async (req: Request, res: Response) => {
+app.post("/api/auth/login", authLimiter, async (req: Request, res: Response) => {
   try {
     const loginInfo = loginSchema.safeParse(req.body);
     if (!loginInfo.success) return res.status(400).json({ error: loginInfo.error.issues[0].message });
@@ -84,7 +84,7 @@ app.post("/u/auth/login", authLimiter, async (req: Request, res: Response) => {
   }
 });
 
-app.post("/u/auth/refresh", async (req: Request, res: Response) => {
+app.post("/api/auth/refresh", async (req: Request, res: Response) => {
   try {
     const rawRefreshToken = req.cookies.refresh_token;
     if (!rawRefreshToken) return res.status(401).json({ error: "No refresh token provided" });
@@ -131,7 +131,7 @@ app.post("/u/auth/refresh", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/u/auth/logout", async (req: Request, res: Response) => {
+app.post("/api/auth/logout", async (req: Request, res: Response) => {
   try {
     const rawToken = req.cookies.refresh_token;
     if (rawToken) {
@@ -146,7 +146,7 @@ app.post("/u/auth/logout", async (req: Request, res: Response) => {
   res.json({ message: "Logout successful" });
 });
 
-app.get("/u/getProfile/:slug", async (req: Request, res: Response) => {
+app.get("/api/getProfile/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const result = await pool.query(
@@ -162,7 +162,7 @@ app.get("/u/getProfile/:slug", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/u/getSlug", authenticateToken, async (req: AuthRequest, res: Response) => {
+app.get("/api/getSlug", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const result = await pool.query("SELECT bio, slug FROM users WHERE id = $1", [req.user?.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
@@ -177,7 +177,7 @@ app.get("/u/getSlug", authenticateToken, async (req: AuthRequest, res: Response)
   }
 });
 
-app.post("/u/createProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
+app.post("/api/createProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
   try {
     if (typeof req.body.tags === 'string') {
       try {
@@ -214,7 +214,7 @@ app.post("/u/createProfile", authenticateToken, upload.single("profilePic"), asy
   }
 });
 
-app.put("/u/updateProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
+app.put("/api/updateProfile", authenticateToken, upload.single("profilePic"), async (req: AuthRequest, res: Response) => {
   try {
     const { bio, location, birthDate, socialLinks } = req.body;
     let { profilePic } = req.body;
@@ -250,7 +250,7 @@ app.put("/u/updateProfile", authenticateToken, upload.single("profilePic"), asyn
   }
 });
 
-app.get("/u/photo/uploadAuth", authenticateToken, (req, res) => {
+app.get("/api/photo/uploadAuth", authenticateToken, (req, res) => {
   const authParams = imagekit.getAuthenticationParameters();
   res.send({
     ...authParams,
@@ -258,7 +258,7 @@ app.get("/u/photo/uploadAuth", authenticateToken, (req, res) => {
   });
 });
 
-app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, res: Response) => {
+app.post("/api/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { metadata, jobIds, slug } = req.body;
 
@@ -342,7 +342,7 @@ app.post("/u/photo/uploadPhotos", authenticateToken, async (req: AuthRequest, re
   }
 });
 
-app.get("/u/photo/status/:batchId", authenticateToken, async (req: AuthRequest, res: Response) => {
+app.get("/api/photo/status/:batchId", authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { batchId } = req.params;
     const result = await pool.query(
@@ -363,7 +363,7 @@ app.get("/u/photo/status/:batchId", authenticateToken, async (req: AuthRequest, 
   }
 });
 
-app.get("/u/photo/getPhotos/:slug", async (req: Request, res: Response) => {
+app.get("/api/photo/getPhotos/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const userResult = await pool.query("SELECT id, email FROM users WHERE LOWER(slug) = LOWER($1)", [slug]);
@@ -382,7 +382,7 @@ app.get("/u/photo/getPhotos/:slug", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/u/photo/getInfinitePhotos", async (req: Request, res: Response) => {
+app.get("/api/photo/getInfinitePhotos", async (req: Request, res: Response) => {
   try {
     const skip = parseInt(req.query.skip as string) || 0;
     const take = parseInt(req.query.take as string) || 20;
