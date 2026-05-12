@@ -9,7 +9,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -b",
-    "start": "node dist/index.js",
+    "start": "concurrently \"node dist/index.js\" \"node dist/workers/uploadWorker.js\"",
     "dev": "npm run build && npm run start",
     "worker": "npx ts-node src/workers/uploadWorker.ts",
     "start:worker": "node dist/workers/uploadWorker.js",
@@ -26,6 +26,7 @@
     "@types/typescript": "^0.4.29",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.75.2",
+    "concurrently": "^9.2.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
