@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: iso-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://postgres.snnrfwggjnsfbxitrvwb:Abhimacbook24@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+      - key: REDIS_URL
+        value: rediss://default:gQAAAAAAARUgAAIgcDE5NTkyZjI5M2NhZWM0ZTQ0OTc4MzBmOGFiMDUyZWZmOA@many-rooster-70944.upstash.io:6379
+      - key: IMAGEKIT_PUBLICKEY
+        value: public_GnG3uGSELbWkfUQqu1BOPJlHOno=
+      - key: IMAGEKIT_PRIVATEKEY
+        value: private_3JtMtTOQl1/8XKXS32dUetNujcs=
+      - key: IMAGEKIT_URLENDPOINT
+        value: https://ik.imagekit.io/up3a14xgm/
+      - key: JWT_SECRET
+        value: 225f271be1d717809abe6caa066c0bedc1f5efc76bd38ea11883dc8bfd857a12
+      - key: REFRESH_TOKEN_SECRET
+        value: 3c82e6d9b4f5a1e2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6
